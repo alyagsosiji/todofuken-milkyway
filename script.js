@@ -277,7 +277,7 @@ let currentMode = '';
 let currentQuizPrefecture = null;
 let score = 0;
 let flashcardIndex = 0;
-const ADMIN_ID = "ashi";
+const ADMIN_ID = "admin";
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
