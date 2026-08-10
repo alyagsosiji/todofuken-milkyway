@@ -1,9 +1,7 @@
-// Firestore에서 삭제 기능(deleteDoc, doc, where)을 추가로 임포트합니다.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// ⚠️ 본인의 파이어베이스 설정으로 교체하세요
 const firebaseConfig = {
   apiKey: "AIzaSyAYGQglJDG_-q_g6rIz5gB_3oxN4wdV8I0",
   authDomain: "todofuken-milkyway.firebaseapp.com",
@@ -20,14 +18,11 @@ const auth = getAuth(appFirebase);
 const db = getFirestore(appFirebase);
 
 const prefectures = [
-    // --- 홋카이도 (1개) ---
     {
         regionKo: "홋카이도", regionJa: "北海道", nameKo: "홋카이도", nameJa: "北海道",
         specialties: [{ko:"털게",ja:"毛ガニ"}, {ko:"유바리 멜론",ja:"夕張メロン"}, {ko:"성게",ja:"ウニ"}],
         spots: [{ko:"삿포로 시계탑",ja:"札幌時計台"}, {ko:"오타루 운하",ja:"小樽運河"}]
     },
-    
-    // --- 도호쿠 지방 (6개) ---
     {
         regionKo: "도호쿠", regionJa: "東北", nameKo: "아오모리현", nameJa: "青森県",
         specialties: [{ko:"사과",ja:"りんご"}, {ko:"마늘",ja:"にんにく"}],
@@ -58,8 +53,6 @@ const prefectures = [
         specialties: [{ko:"복숭아",ja:"桃"}, {ko:"기타카타 라멘",ja:"喜多方ラーメン"}],
         spots: [{ko:"오우치주쿠",ja:"大内宿"}, {ko:"쓰루가성",ja:"鶴ヶ城"}]
     },
-
-    // --- 관동 지방 (7개) ---
     {
         regionKo: "관동", regionJa: "関東", nameKo: "이바라키현", nameJa: "茨城県",
         specialties: [{ko:"낫토",ja:"納豆"}, {ko:"멜론",ja:"メロン"}],
@@ -95,8 +88,6 @@ const prefectures = [
         specialties: [{ko:"슈마이",ja:"シウマイ"}, {ko:"가마보코",ja:"かまぼこ"}],
         spots: [{ko:"요코하마 중화가",ja:"横浜中華街"}, {ko:"하코네 온천",ja:"箱根温泉"}]
     },
-
-    // --- 주부 지방 (9개) ---
     {
         regionKo: "주부", regionJa: "中部", nameKo: "니이가타현", nameJa: "新潟県",
         specialties: [{ko:"고시히카리 쌀",ja:"コシヒカリ"}, {ko:"사사당고",ja:"笹だんご"}],
@@ -142,8 +133,6 @@ const prefectures = [
         specialties: [{ko:"히츠마부시",ja:"ひつまぶし"}, {ko:"미소카츠",ja:"味噌カツ"}],
         spots: [{ko:"나고야성",ja:"名古屋城"}, {ko:"도요타 박물관",ja:"トヨタ博物館"}]
     },
-
-    // --- 간사이 지방 (7개) ---
     {
         regionKo: "간사이", regionJa: "関西", nameKo: "미에현", nameJa: "三重県",
         specialties: [{ko:"마쓰사카 소고기",ja:"松阪牛"}, {ko:"이세 우동",ja:"伊勢うどん"}],
@@ -179,8 +168,6 @@ const prefectures = [
         specialties: [{ko:"감귤",ja:"みかん"}, {ko:"매실",ja:"梅"}],
         spots: [{ko:"고야산",ja:"高野山"}, {ko:"시라하라 해변",ja:"白良浜"}]
     },
-
-    // --- 주고쿠 지방 (5개) ---
     {
         regionKo: "주고쿠", regionJa: "中国", nameKo: "돗토리현", nameJa: "鳥取県",
         specialties: [{ko:"배",ja:"梨"}, {ko:"대게",ja:"ズワイガニ"}],
@@ -206,8 +193,6 @@ const prefectures = [
         specialties: [{ko:"복어",ja:"ふぐ"}, {ko:"가와라 소바",ja:"瓦そば"}],
         spots: [{ko:"긴타이쿄",ja:"錦帯橋"}, {ko:"아키요시다이",ja:"秋吉台"}]
     },
-
-    // --- 시코쿠 지방 (4개) ---
     {
         regionKo: "시코쿠", regionJa: "四国", nameKo: "도쿠시마현", nameJa: "徳島県",
         specialties: [{ko:"스다치",ja:"すだち"}, {ko:"도쿠시마 라멘",ja:"徳島ラーメン"}],
@@ -228,8 +213,6 @@ const prefectures = [
         specialties: [{ko:"가쓰오 타타키",ja:"かつおのタタキ"}, {ko:"유자",ja:"ゆず"}],
         spots: [{ko:"고치성",ja:"高知城"}, {ko:"시만토강",ja:"四万十川"}]
     },
-
-    // --- 규슈/오키나와 지방 (8개) ---
     {
         regionKo: "규슈", regionJa: "九州", nameKo: "후쿠오카현", nameJa: "福岡県",
         specialties: [{ko:"돈코츠 라멘",ja:"豚骨ラーメン"}, {ko:"명란젓",ja:"明太子"}],
@@ -274,6 +257,7 @@ const prefectures = [
 
 let currentUser = null;
 let currentMode = ''; 
+let currentQuizLang = 'ko'; // 선택한 퀴즈 언어 모드 저장용
 let currentQuizPrefecture = null;
 let score = 0;
 let flashcardIndex = 0;
@@ -301,14 +285,14 @@ async function handleAuth(action) {
     try {
         if (action === 'signup') {
             await createUserWithEmailAndPassword(auth, email, pw);
-            msg.style.color = "#4ade80"; // 초록색
+            msg.style.color = "#4ade80"; 
             msg.innerText = "가입 성공! 로그인 중...";
         } else {
             await signInWithEmailAndPassword(auth, email, pw);
             msg.innerText = "";
         }
     } catch (error) {
-        msg.style.color = "#ff6b6b"; // 빨간색
+        msg.style.color = "#ff6b6b"; 
         msg.innerText = "오류: " + error.message;
     }
 }
@@ -331,18 +315,15 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// 앱 전역 객체
 window.app = {
     logout: () => signOut(auth),
     
-    // ★ 새롭게 추가된 정책 화면 호출 기능
     showPolicy: (type) => {
         if (type === 'tos') showScreen('tos-screen');
         if (type === 'privacy') showScreen('privacy-screen');
     },
 
     resetMyRecords: async () => {
-        // 기존 코드와 동일
         if (!currentUser) return;
         const displayId = currentUser.email.split('@')[0];
         
@@ -373,7 +354,6 @@ window.app = {
     },
 
     goHome: async () => {
-        // 기존 코드와 동일
         if(currentMode.includes('quiz') && score > 0) {
             const displayId = currentUser.email.split('@')[0];
             await addDoc(collection(db, "records"), {
@@ -384,7 +364,7 @@ window.app = {
             });
             alert(`기록이 저장되었습니다! 최종 점수: ${score}`);
         }
-        currentMode = ''; // 정책 화면에서 돌아올 때를 대비해 초기화
+        currentMode = ''; 
         showScreen('main-screen');
     },
 
@@ -394,29 +374,37 @@ window.app = {
         app.updateFlashcard();
         showScreen('flashcard-screen');
     },
+    
     updateFlashcard: () => {
-        const lang = document.getElementById('lang-select').value;
+        const lang = document.getElementById('lang-flashcard').value;
         const p = prefectures[flashcardIndex];
         const front = document.getElementById('fc-front');
         const back = document.getElementById('fc-back');
         
         document.getElementById('flashcard').classList.remove('flipped');
         
+        // 도(지방) 부분을 더 확실하게 표기하기 위해 디자인 적용
+        const regionKoStr = `<span style="font-size:0.55em; color:#a5b4fc; display:block; margin-bottom:5px; font-weight:normal;">${p.regionKo} 지방</span>`;
+        const regionJaStr = `<span style="font-size:0.55em; color:#a5b4fc; display:block; margin-bottom:5px; font-weight:normal;">${p.regionJa} 地方</span>`;
+
         if (lang === 'ko') {
-            front.innerHTML = `${p.regionKo}<br>${p.nameKo}`;
-            back.innerHTML = `${p.regionJa}<br>${p.nameJa}`;
+            front.innerHTML = `${regionKoStr} ${p.nameKo}`;
+            back.innerHTML = `${regionJaStr} ${p.nameJa}`;
         } else {
-            front.innerHTML = `${p.regionJa}<br>${p.nameJa}`;
-            back.innerHTML = `${p.regionKo}<br>${p.nameKo}`;
+            front.innerHTML = `${regionJaStr} ${p.nameJa}`;
+            back.innerHTML = `${regionKoStr} ${p.nameKo}`;
         }
     },
+    
     flipCard: () => document.getElementById('flashcard').classList.toggle('flipped'),
     nextCard: () => { flashcardIndex = (flashcardIndex + 1) % prefectures.length; app.updateFlashcard(); },
     prevCard: () => { flashcardIndex = (flashcardIndex - 1 + prefectures.length) % prefectures.length; app.updateFlashcard(); },
 
     startQuiz: (type) => {
         currentMode = 'quiz-' + type;
+        currentQuizLang = document.getElementById('lang-quiz-' + type).value;
         score = 0;
+        
         document.getElementById('current-score').innerText = score;
         document.getElementById('quiz-feedback').innerText = '';
         showScreen('quiz-screen');
@@ -431,19 +419,43 @@ window.app = {
         app.nextQuestion();
     },
 
+    // 힌트 보기 버튼 클릭 시 실행
+    showHint: () => {
+        document.getElementById('show-hint-btn').classList.add('hidden');
+        document.getElementById('quiz-hint').classList.remove('hidden');
+    },
+
     nextQuestion: () => {
         document.getElementById('quiz-feedback').innerText = '';
         document.getElementById('short-answer-input').value = '';
         currentQuizPrefecture = getRandom(prefectures);
         
+        // 문제 전환 시 힌트 다시 숨기기
+        document.getElementById('show-hint-btn').classList.remove('hidden');
+        document.getElementById('quiz-hint').classList.add('hidden');
+        document.getElementById('quiz-hint').innerText = '';
+
         const qType = Math.floor(Math.random() * 3);
         let clue = "";
         
-        if (qType === 0) clue = `특산물: ${getRandom(currentQuizPrefecture.specialties).ko}`;
-        else if (qType === 1) clue = `유명한 곳: ${getRandom(currentQuizPrefecture.spots).ko}`;
-        else clue = `어느 지방? ${currentQuizPrefecture.regionKo}지방`;
+        // 언어 모드에 맞춰 문제/단서 생성
+        if (currentQuizLang === 'ko') {
+            document.getElementById('quiz-question').innerText = "어떤 도도부현일까요? (단서가 필요하면 힌트 보기를 누르세요!)";
+            if (qType === 0) clue = `특산물: ${getRandom(currentQuizPrefecture.specialties).ko}`;
+            else if (qType === 1) clue = `유명한 곳: ${getRandom(currentQuizPrefecture.spots).ko}`;
+            else clue = `어느 지방? ${currentQuizPrefecture.regionKo} 지방`;
+        } else {
+            document.getElementById('quiz-question').innerText = "どの都道府県でしょうか？ (ヒントが必要な場合はボタンをクリック！)";
+            if (qType === 0) clue = `特産物: ${getRandom(currentQuizPrefecture.specialties).ja}`;
+            else if (qType === 1) clue = `有名な場所: ${getRandom(currentQuizPrefecture.spots).ja}`;
+            else clue = `どの地方？ ${currentQuizPrefecture.regionJa} 地方`;
+        }
 
-        document.getElementById('quiz-question').innerText = `다음 설명에 해당하는 도도부현은 어디일까요?\n\n힌트: ${clue}`;
+        // 힌트 박스에 내용 저장
+        document.getElementById('quiz-hint').innerText = clue;
+
+        // 정답 설정 (언어 모드에 따라 다름)
+        const answerName = currentQuizLang === 'ko' ? currentQuizPrefecture.nameJa : currentQuizPrefecture.nameKo;
 
         if (currentMode === 'quiz-multiple') {
             let options = [currentQuizPrefecture];
@@ -455,14 +467,19 @@ window.app = {
             
             const btns = document.querySelectorAll('.choice-btn');
             btns.forEach((btn, i) => {
-                btn.innerText = options[i].nameJa;
-                btn.onclick = () => app.checkAnswer(options[i].nameJa === currentQuizPrefecture.nameJa);
+                const optionName = currentQuizLang === 'ko' ? options[i].nameJa : options[i].nameKo;
+                btn.innerText = optionName;
+                btn.onclick = () => app.checkAnswer(optionName === answerName);
             });
+        } else {
+            document.getElementById('short-answer-input').placeholder = currentQuizLang === 'ko' ? "정답 입력 (ex: 北海道)" : "정답 입력 (ex: 홋카이도)";
         }
     },
 
     checkAnswer: (isCorrect) => {
         const feedback = document.getElementById('quiz-feedback');
+        const answerName = currentQuizLang === 'ko' ? currentQuizPrefecture.nameJa : currentQuizPrefecture.nameKo;
+
         if (isCorrect) {
             score += 10;
             document.getElementById('current-score').innerText = score;
@@ -471,14 +488,15 @@ window.app = {
             setTimeout(app.nextQuestion, 1000);
         } else {
             feedback.style.color = "#f87171";
-            feedback.innerText = `틀렸습니다! 정답은 ${currentQuizPrefecture.nameJa} 입니다.`;
+            feedback.innerText = `틀렸습니다! 정답은 ${answerName} 입니다.`;
             setTimeout(app.nextQuestion, 2000);
         }
     },
 
     checkShortAnswer: () => {
         const userInput = document.getElementById('short-answer-input').value.trim();
-        app.checkAnswer(userInput === currentQuizPrefecture.nameJa);
+        const answerName = currentQuizLang === 'ko' ? currentQuizPrefecture.nameJa : currentQuizPrefecture.nameKo;
+        app.checkAnswer(userInput === answerName);
     },
 
     showAdmin: async () => {
@@ -499,4 +517,3 @@ window.app = {
         });
     }
 };
-
