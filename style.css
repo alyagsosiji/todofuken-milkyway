@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans KR', sans-serif;
+    /* 모바일 텍스트 드래그 방지 (앱처럼 보이게) */
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* 입력칸(Input)은 텍스트 선택 허용 */
+input, select {
+    -webkit-user-select: auto;
+    user-select: auto;
+}
+
+body {
+    background-color: #000;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    /* 모바일 스크롤 바운스 방지 */
+    overscroll-behavior-y: none;
+}
+
+/* 은하수 배경 애니메이션 */
+.stars, .twinkling {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    display: block;
+}
+.stars {
+    background: #000 url('https://raw.githubusercontent.com/danielstuart14/CSS_Fills/master/star-bg.png') repeat top center;
+    z-index: -2;
+}
+.twinkling {
+    background: transparent url('https://raw.githubusercontent.com/danielstuart14/CSS_Fills/master/twinkling.png') repeat top center;
+    z-index: -1;
+    animation: move-twink-back 200s linear infinite;
+}
+@keyframes move-twink-back {
+    from {background-position: 0 0;}
+    to {background-position: -10000px 5000px;}
+}
+
+/* UI 컨테이너 (모바일 대응) */
+.container {
+    width: 90%;
+    max-width: 400px;
+    z-index: 10;
+}
+
+/* 글래스모피즘 카드 디자인 */
+.card {
+    background: rgba(25, 25, 35, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.hidden { display: none !important; }
+.active { display: block; }
+
+h1, h2 { margin-bottom: 20px; color: #e0e0ff; }
+
+/* 폼 요소 (모바일 터치 크기 확보) */
+input, select {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    font-size: 16px;
+}
+
+/* 버튼 디자인 */
+button {
+    width: 100%;
+    padding: 16px; /* 모바일 터치를 위해 패딩 증가 */
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #4a4e69;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    /* 모바일 터치 피드백 딜레이 제거 */
+    touch-action: manipulation; 
+}
+button:active { transform: scale(0.98); }
+button.secondary { background: #22223b; }
+button.error-btn { background: #ef4444; } /* 초기화 버튼 (빨간색) */
+
+.btn-group { display: flex; gap: 10px; }
+.mt-10 { margin-top: 10px; }
+.error-msg { color: #ff6b6b; font-size: 14px; margin-top: 10px; }
+.divider { border: 0; height: 1px; background: rgba(255,255,255,0.2); margin: 20px 0; }
+
+/* 퀴즈 및 단어장 */
+.question-box {
+    font-size: 18px;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 8px;
+}
+.choice-btn { margin-bottom: 8px; background: #2a2a35; }
+
+/* 단어장 3D 뒤집기 효과 */
+.flashcard {
+    width: 100%; height: 200px;
+    perspective: 1000px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    /* 터치 시 하이라이트 방지 */
+    -webkit-tap-highlight-color: transparent; 
+}
+.card-inner {
+    width: 100%; height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    position: relative;
+}
+.flashcard.flipped .card-inner { transform: rotateY(180deg); }
+.card-front, .card-back {
+    width: 100%; height: 100%;
+    position: absolute;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 24px;
+    line-height: 1.4;
+    border-radius: 10px;
+    background: #4a4e69;
+    padding: 10px;
+}
+.card-back {
+    background: #22223b;
+    transform: rotateY(180deg);
+}
+
+/* 관리자 패널 */
+#user-records { text-align: left; list-style: none; max-height: 250px; overflow-y: auto; }
+#user-records li { margin-bottom: 8px; font-size: 14px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+
+/* --- 이용약관 및 정책 스타일 --- */
+.policy-links {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.policy-links span {
+    cursor: pointer;
+    text-decoration: underline;
+    margin: 0 5px;
+    transition: color 0.2s;
+}
+
+.policy-links span:hover {
+    color: #fff;
+}
+
+.policy-content {
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.6;
+    max-height: 250px; /* 모바일 화면을 위해 최대 높이 설정 */
+    overflow-y: auto; /* 내용이 길면 내부 스크롤 생성 */
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    color: #d1d5db;
+}
+
+.policy-content p {
+    margin-bottom: 12px;
+}
+
+.policy-content strong {
+    color: #e0e0ff;
+    font-size: 14px;
+}
