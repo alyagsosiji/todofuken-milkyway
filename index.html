@@ -11,6 +11,7 @@
     <div class="twinkling"></div>
 
     <div class="container">
+        <!-- 로그인 화면 -->
         <section id="auth-screen" class="screen card active">
             <h1>🌌 일본 도도부현 마스터</h1>
             <input type="text" id="username" placeholder="아이디를 입력하세요">
@@ -22,18 +23,36 @@
             <p id="auth-message" class="error-msg"></p>
         </section>
 
+        <!-- 메인 화면 -->
         <section id="main-screen" class="screen card hidden">
             <h2 id="welcome-msg">환영합니다!</h2>
-            <div class="options">
-                <label>언어 모드:</label>
-                <select id="lang-select">
-                    <option value="ko">한국어 힌트 👉 일본어 정답</option>
-                    <option value="ja">일본어 힌트 👉 한국어 정답 (단어장용)</option>
+            
+            <!-- 단어장 설정 -->
+            <div class="menu-group">
+                <select id="lang-flashcard">
+                    <option value="ko">🇰🇷 한국어 👉 🇯🇵 일본어</option>
+                    <option value="ja">🇯🇵 일본어 👉 🇰🇷 한국어</option>
                 </select>
+                <button class="menu-btn" onclick="app.startFlashcard()">📖 단어장 모드</button>
             </div>
-            <button class="menu-btn" onclick="app.startFlashcard()">📖 단어장 모드</button>
-            <button class="menu-btn" onclick="app.startQuiz('multiple')">📝 객관식 퀴즈</button>
-            <button class="menu-btn" onclick="app.startQuiz('short')">✍️ 주관식 퀴즈</button>
+
+            <!-- 객관식 퀴즈 설정 -->
+            <div class="menu-group">
+                <select id="lang-quiz-multiple">
+                    <option value="ko">🇰🇷 한국어 단서 👉 🇯🇵 정답 맞추기</option>
+                    <option value="ja">🇯🇵 일본어 단서 👉 🇰🇷 정답 맞추기</option>
+                </select>
+                <button class="menu-btn" onclick="app.startQuiz('multiple')">📝 객관식 퀴즈</button>
+            </div>
+
+            <!-- 주관식 퀴즈 설정 -->
+            <div class="menu-group">
+                <select id="lang-quiz-short">
+                    <option value="ko">🇰🇷 한국어 단서 👉 🇯🇵 정답 입력</option>
+                    <option value="ja">🇯🇵 일본어 단서 👉 🇰🇷 정답 입력</option>
+                </select>
+                <button class="menu-btn" onclick="app.startQuiz('short')">✍️ 주관식 퀴즈</button>
+            </div>
             
             <hr class="divider">
             
@@ -47,6 +66,7 @@
             </div>
         </section>
 
+        <!-- 이용약관 및 개인정보 화면 (생략 없이 기존과 동일) -->
         <section id="tos-screen" class="screen card hidden">
             <h2>이용약관</h2>
             <div class="policy-content">
@@ -69,6 +89,7 @@
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
         </section>
 
+        <!-- 단어장 화면 -->
         <section id="flashcard-screen" class="screen card hidden">
             <h2>단어장</h2>
             <div class="flashcard" id="flashcard" onclick="app.flipCard()">
@@ -84,24 +105,32 @@
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
         </section>
 
+        <!-- 퀴즈 화면 -->
         <section id="quiz-screen" class="screen card hidden">
             <h2 id="quiz-title">퀴즈</h2>
             <p class="score-display">점수: <span id="current-score">0</span></p>
+            
             <div id="quiz-question" class="question-box">문제</div>
+            
+            <!-- 힌트 숨김/보기 영역 -->
+            <button id="show-hint-btn" class="secondary" onclick="app.showHint()">💡 힌트 보기</button>
+            <div id="quiz-hint" class="question-box hidden hint-box">힌트</div>
+
             <div id="multiple-choice-box" class="hidden">
-                <button class="choice-btn" onclick="app.checkAnswer(0)"></button>
-                <button class="choice-btn" onclick="app.checkAnswer(1)"></button>
-                <button class="choice-btn" onclick="app.checkAnswer(2)"></button>
-                <button class="choice-btn" onclick="app.checkAnswer(3)"></button>
+                <button class="choice-btn"></button>
+                <button class="choice-btn"></button>
+                <button class="choice-btn"></button>
+                <button class="choice-btn"></button>
             </div>
             <div id="short-answer-box" class="hidden">
-                <input type="text" id="short-answer-input" placeholder="정답 입력 (ex: 北海道)">
+                <input type="text" id="short-answer-input" placeholder="정답 입력">
                 <button onclick="app.checkShortAnswer()">제출</button>
             </div>
             <p id="quiz-feedback"></p>
             <button class="secondary mt-10" onclick="app.goHome()">종료 및 저장</button>
         </section>
 
+        <!-- 관리자 화면 -->
         <section id="admin-screen" class="screen card hidden">
             <h2>관리자 패널</h2>
             <div class="admin-data">
