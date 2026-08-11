@@ -11,7 +11,6 @@
     <div class="twinkling"></div>
 
     <div class="container">
-        <!-- 로그인 화면 -->
         <section id="auth-screen" class="screen card active">
             <h1>🌌 일본 도도부현 마스터</h1>
             <input type="text" id="username" placeholder="아이디를 입력하세요">
@@ -23,7 +22,6 @@
             <p id="auth-message" class="error-msg"></p>
         </section>
 
-        <!-- 메인 화면 -->
         <section id="main-screen" class="screen card hidden">
             <div class="header-area">
                 <h2 id="welcome-msg">환영합니다!</h2>
@@ -35,21 +33,21 @@
             <button class="menu-btn highlight-btn" onclick="app.showRanking()">👑 명예의 전당 (랭킹 보기)</button>
             <hr class="divider">
 
-            <!-- 단어장 설정 -->
             <div class="menu-group">
                 <select id="lang-flashcard">
-                    <option value="ko">🇰🇷 한국어 👉 🇯🇵 일본어</option>
-                    <option value="ja">🇯🇵 일본어 👉 🇰🇷 한국어</option>
+                    <option value="ko-ja">🇰🇷 한국어 👉 🇯🇵 일본어</option>
+                    <option value="ja-ko">🇯🇵 일본어 👉 🇰🇷 한국어</option>
                 </select>
                 <button class="menu-btn" onclick="app.startFlashcard()">📖 단어장 모드</button>
             </div>
 
-            <!-- 객관식 퀴즈 설정 -->
             <div class="menu-group">
                 <div class="select-wrapper">
                     <select id="lang-quiz-multiple">
-                        <option value="ko">🇰🇷 단서 👉 🇯🇵 정답</option>
-                        <option value="ja">🇯🇵 단서 👉 🇰🇷 정답</option>
+                        <option value="ko-ja">🇰🇷 단서 👉 🇯🇵 정답</option>
+                        <option value="ja-ko">🇯🇵 단서 👉 🇰🇷 정답</option>
+                        <option value="ko-ko">🇰🇷 단서 👉 🇰🇷 정답</option>
+                        <option value="ja-ja">🇯🇵 단서 👉 🇯🇵 정답</option>
                     </select>
                     <select id="diff-quiz-multiple">
                         <option value="easy">🌱 난이도: 쉬움 (힌트 모두)</option>
@@ -60,12 +58,13 @@
                 <button class="menu-btn" onclick="app.startQuiz('multiple')">📝 객관식 시작</button>
             </div>
 
-            <!-- 주관식 퀴즈 설정 -->
             <div class="menu-group">
                 <div class="select-wrapper">
                     <select id="lang-quiz-short">
-                        <option value="ko">🇰🇷 단서 👉 🇯🇵 정답</option>
-                        <option value="ja">🇯🇵 단서 👉 🇰🇷 정답</option>
+                        <option value="ko-ja">🇰🇷 단서 👉 🇯🇵 정답</option>
+                        <option value="ja-ko">🇯🇵 단서 👉 🇰🇷 정답</option>
+                        <option value="ko-ko">🇰🇷 단서 👉 🇰🇷 정답</option>
+                        <option value="ja-ja">🇯🇵 단서 👉 🇯🇵 정답</option>
                     </select>
                     <select id="diff-quiz-short">
                         <option value="easy">🌱 난이도: 쉬움 (힌트 모두)</option>
@@ -76,9 +75,22 @@
                 <button class="menu-btn" onclick="app.startQuiz('short')">✍️ 주관식 시작</button>
             </div>
             
+            <div class="menu-group">
+                <div class="select-wrapper">
+                    <select id="lang-quiz-map">
+                        <option value="ko-ja">🗺️ 지도 👉 🇯🇵 정답</option>
+                        <option value="ko-ko">🗺️ 지도 👉 🇰🇷 정답</option>
+                    </select>
+                    <select id="diff-quiz-map">
+                        <option value="normal" selected>🌿 난이도: 보통 (지도만 표시)</option>
+                        <option value="easy">🌱 난이도: 쉬움 (지도 + 텍스트 힌트)</option>
+                    </select>
+                </div>
+                <button class="menu-btn" onclick="app.startQuiz('map')" style="background: #10b981;">🗺️ 지도 퀴즈 시작</button>
+            </div>
+            
             <hr class="divider">
             
-            <!-- 하단 액션 버튼 그룹 (기록 초기화 / 계정 탈퇴 분리) -->
             <div class="bottom-actions">
                 <div class="danger-zone btn-group">
                     <button class="menu-btn error-btn" onclick="app.resetMyRecords()">🗑️ 기록 초기화</button>
@@ -94,7 +106,6 @@
             </div>
         </section>
 
-        <!-- 랭킹 화면 -->
         <section id="ranking-screen" class="screen card hidden">
             <h2>👑 명예의 전당 (Top 10)</h2>
             <div class="ranking-container">
@@ -103,53 +114,6 @@
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
         </section>
 
-        <!-- 이용약관 화면 -->
-        <section id="tos-screen" class="screen card hidden">
-            <h2>이용약관</h2>
-            <div class="policy-content">
-                <p><strong>제1조 (목적)</strong><br>본 약관은 '일본 도도부현 마스터' 서비스(이하 "서비스")가 제공하는 일본 지역 학습, 퀴즈 및 랭킹 관련 제반 서비스의 이용 조건 및 절차, 이용자와 서비스 운영자의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>
-                
-                <p><strong>제2조 (용어의 정의)</strong><br>1. "서비스"란 구현되는 단말기(PC, 모바일 등)와 상관없이 이용자가 수강 및 퀴즈, 단어장 등의 콘텐츠를 이용할 수 있는 웹 기반 애플리케이션을 의미합니다.<br>2. "이용자"란 본 약관에 동의하고 서비스에 로그인하여 이용하는 회원을 의미합니다.</p>
-                
-                <p><strong>제3조 (약관의 효력과 개정)</strong><br>1. 본 약관은 서비스 화면에 게시하거나 기타의 방법으로 이용자에게 공지함으로써 효력이 발생합니다.<br>2. 운영자는 필요한 경우 관련 법령을 위배하지 않는 범위 내에서 본 약관을 개정할 수 있습니다.</p>
-                
-                <p><strong>제4조 (계정의 관리 및 이용자의 의무)</strong><br>1. 이용자는 아이디와 비밀번호에 대한 관리 책임을지며, 이를 타인에게 양도하거나 대여할 수 없습니다.<br>2. 이용자는 다음 행위를 하여서는 안 됩니다.<br>
-                - 타인의 정보 도용 및 허위 사실 기재<br>
-                - 비정상적인 방법(매크로, 시스템 취약점 공격 등)을 통한 퀴즈 점수 조작 및 랭킹 시스템 교란<br>
-                - 서비스 서버에 과부하를 주거나 운영을 방해하는 행위</p>
-                
-                <p><strong>제5조 (서비스의 제공 및 중단)</strong><br>1. 서비스는 연중무휴, 1일 24시간 제공함을 원칙으로 합니다.<br>2. 시스템 점검, 서버 교체, 통신 장애 등 운영상의 부득이한 사유가 발생한 경우 서비스의 전부 또는 일부를 일시 중지할 수 있습니다.</p>
-                
-                <p><strong>제6조 (이용 제한 및 어뷰징 제재)</strong><br>운영자는 이용자가 본 약관의 의무를 위반하거나 부정한 방법으로 점수를 조작하는 경우, 사전 통보 없이 해당 계정 및 접속 IP를 차단(영구 정지)할 수 있습니다.</p>
-            </div>
-            <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
-        </section>
-
-        <!-- 개인정보처리방침 화면 -->
-        <section id="privacy-screen" class="screen card hidden">
-            <h2>개인정보처리방침</h2>
-            <div class="policy-content">
-                <p><strong>1. 수집하는 개인정보 항목</strong><br>서비스는 회원가입, 원활한 고객 상담 및 랭킹 서비스를 위해 아래와 같은 개인정보를 수집합니다.<br>
-                - 필수항목: 아이디 (가상 이메일 형식으로 변환되어 안전하게 인증 및 관리됨)<br>
-                - 자동 수집 항목: 서비스 이용 기록, 퀴즈 점수, 학습 모드, 접속 IP 주소</p>
-                
-                <p><strong>2. 개인정보의 수집 및 이용 목적</strong><br>수집된 개인정보는 다음의 목적을 위해 활용됩니다.<br>
-                - 이용자 식별, 로그인 유지 및 중복 가입 방지<br>
-                - 개인별 최고 점수 관리 및 명예의 전당(랭킹) 순위 산정<br>
-                - 부정 이용자(어뷰저) 식별 및 IP/계정 차단을 통한 서비스 보안 유지</p>
-                
-                <p><strong>3. 개인정보의 보유 및 파기 절차</strong><br>이용자의 개인정보는 원칙적으로 개인정보의 수집 및 이용 목적이 달성되면 지체 없이 파기합니다.<br>
-                - <strong>기록 초기화 시:</strong> 사용자가 '기록 초기화' 기능을 사용할 경우 해당 학습 기록(점수 데이터)은 DB에서 즉시 영구 삭제됩니다.<br>
-                - <strong>계정 탈퇴 시:</strong> 사용자가 '계정 탈퇴'를 요청하거나 실행할 경우, Firebase 인증(Auth) 계정이 즉시 삭제되며 연관된 모든 퀴즈 기록 데이터가 영구 파기됩니다.</p>
-                
-                <p><strong>4. 개인정보의 제3자 제공</strong><br>서비스는 이용자의 개인정보를 원칙적으로 외부에 제공하지 않습니다. 다만, 안전한 데이터 보관 및 클라우드 인프라 제공을 위해 Google Firebase(Google Cloud) 서비스를 활용합니다.</p>
-                
-                <p><strong>5. 이용자의 권리와 행사 방법</strong><br>이용자는 언제든지 메인 화면의 '기록 초기화' 또는 '계정 탈퇴' 기능을 통해 자신의 개인정보를 직접 삭제할 수 있습니다.</p>
-            </div>
-            <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
-        </section>
-
-        <!-- 단어장 화면 -->
         <section id="flashcard-screen" class="screen card hidden">
             <h2>단어장</h2>
             <div class="flashcard" id="flashcard" onclick="app.flipCard()">
@@ -165,11 +129,14 @@
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
         </section>
 
-        <!-- 퀴즈 화면 -->
         <section id="quiz-screen" class="screen card hidden">
             <h2 id="quiz-title">퀴즈</h2>
             <p class="score-display">점수: <span id="current-score">0</span></p>
             
+            <div id="quiz-map-container" class="hidden">
+                <img id="quiz-map-img" src="" alt="도도부현 지도">
+            </div>
+
             <div id="quiz-question" class="question-box">문제</div>
             
             <button id="show-hint-btn" class="secondary" onclick="app.showHint()">💡 힌트 보기</button>
@@ -191,7 +158,6 @@
             <button class="secondary mt-10" onclick="app.goHome()">종료 및 저장</button>
         </section>
 
-        <!-- 관리자 화면 -->
         <section id="admin-screen" class="screen card hidden">
             <h2>🛠️ 관리자 패널</h2>
             <div class="admin-tabs btn-group" style="margin-bottom: 15px;">
@@ -203,9 +169,15 @@
             </div>
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
         </section>
+        
+        <section id="tos-screen" class="screen card hidden">
+            <h2>이용약관</h2><div class="policy-content">...</div><button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
+        </section>
+        <section id="privacy-screen" class="screen card hidden">
+            <h2>개인정보처리방침</h2><div class="policy-content">...</div><button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
+        </section>
     </div>
 
-    <!-- 하단 저작권 푸터 -->
     <footer class="site-footer">
         &copy; 2026. alyagsosiji. All rights reserved.
     </footer>
