@@ -17,6 +17,13 @@ const appFirebase = initializeApp(firebaseConfig);
 const auth = getAuth(appFirebase);
 const db = getFirestore(appFirebase);
 
+// 현재 사용자 IP 가져오기
+let currentIp = "unknown";
+fetch('https://api.ipify.org?format=json')
+    .then(res => res.json())
+    .then(data => { currentIp = data.ip; })
+    .catch(err => console.log("IP 수집 실패"));
+
 const prefectures = [
     {
         regionKo: "홋카이도", regionJa: "北海道", nameKo: "홋카이도", nameJa: "北海道",
@@ -225,7 +232,7 @@ const prefectures = [
     },
     {
         regionKo: "규슈", regionJa: "九州", nameKo: "나가사키현", nameJa: "長崎県",
-        specialties: [{ko:"카스테라",ja:"カステ라"}, {ko:"짬뽕",ja:"ちゃんぽん"}],
+        specialties: [{ko:"카스테라",ja:"カステラ"}, {ko:"짬뽕",ja:"ちゃんぽん"}],
         spots: [{ko:"하우스텐보스",ja:"ハウステンボス"}, {ko:"글로버 정원",ja:"グラバー園"}]
     },
     {
@@ -298,14 +305,32 @@ async function handleAuth(action) {
     }
 }
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        currentUser = user;
         const displayId = user.email.split('@')[0];
+
+        // 🛑 [차단 시스템] 관리자가 아니면, 아이디 및 IP가 차단되었는지 검사
+        if (displayId !== ADMIN_ID) {
+            try {
+                const userBanQ = query(collection(db, "banned_users"), where("userId", "==", displayId));
+                const ipBanQ = query(collection(db, "banned_ips"), where("ip", "==", currentIp));
+                
+                const [userBanSnap, ipBanSnap] = await Promise.all([getDocs(userBanQ), getDocs(ipBanQ)]);
+                
+                if (!userBanSnap.empty || (!ipBanSnap.empty && currentIp !== "unknown")) {
+                    alert("⚠️ 차단된 계정 또는 IP 입니다. 이용할 수 없습니다.");
+                    await signOut(auth);
+                    return;
+                }
+            } catch(e) {
+                console.log("차단 검사 중 오류", e);
+            }
+        }
+
+        currentUser = user;
         document.getElementById('welcome-msg').innerText = `${displayId}님, 환영합니다!`;
         showScreen('main-screen');
         
-        // 내 최고 점수 업데이트
         app.updateMyBestScore();
         
         if (displayId === ADMIN_ID) {
@@ -327,7 +352,6 @@ window.app = {
         if (type === 'privacy') showScreen('privacy-screen');
     },
 
-    // 로그인한 유저의 최고 점수 불러오기
     updateMyBestScore: async () => {
         if (!currentUser) return;
         const displayId = currentUser.email.split('@')[0];
@@ -363,9 +387,8 @@ window.app = {
             
             await Promise.all(deletePromises);
             alert("기록이 초기화되었습니다.");
-            app.updateMyBestScore(); // 점수 리셋 반영
+            app.updateMyBestScore();
         } catch (error) {
-            console.error("기록 삭제 오류:", error);
             alert("기록 삭제 중 오류가 발생했습니다.");
         }
     },
@@ -373,20 +396,21 @@ window.app = {
     goHome: async () => {
         if(currentMode.includes('quiz') && score > 0) {
             const displayId = currentUser.email.split('@')[0];
+            // 기록 저장 시 IP도 함께 저장 (관리자가 확인하고 차단하기 위함)
             await addDoc(collection(db, "records"), {
                 userId: displayId,
                 score: score,
                 mode: currentMode,
+                ip: currentIp,
                 date: new Date().toISOString()
             });
             alert(`기록이 저장되었습니다! 최종 점수: ${score}`);
-            app.updateMyBestScore(); // 홈으로 돌아갈 때 내 점수 갱신
+            app.updateMyBestScore();
         }
         currentMode = ''; 
         showScreen('main-screen');
     },
 
-    // 랭킹 보여주기
     showRanking: async () => {
         showScreen('ranking-screen');
         const list = document.getElementById('ranking-list');
@@ -402,7 +426,6 @@ window.app = {
             
             snapshot.forEach(doc => {
                 const data = doc.data();
-                // 1유저당 1개의 최고 점수만 랭킹에 표시 (중복 방지)
                 if(!uniqueUsers.has(data.userId) && uniqueUsers.size < 10) {
                     uniqueUsers.add(data.userId);
                     
@@ -424,9 +447,7 @@ window.app = {
                 }
             });
             
-            if (uniqueUsers.size === 0) {
-                list.innerHTML = '<li>아직 등록된 랭킹이 없습니다!</li>';
-            }
+            if (uniqueUsers.size === 0) list.innerHTML = '<li>아직 등록된 랭킹이 없습니다!</li>';
         } catch (error) {
             list.innerHTML = '<li>랭킹을 불러오는데 실패했습니다.</li>';
         }
@@ -511,27 +532,15 @@ window.app = {
         let singleSpotJa = getRandom(currentQuizPrefecture.spots).ja;
 
         if (currentQuizLang === 'ko') {
-            document.getElementById('quiz-question').innerText = "어떤 도도부현일까요?";
-            if (currentQuizDifficulty === 'easy') {
-                clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${allSpKo}\n📸 명소: ${allSpotKo}`;
-            } else if (currentQuizDifficulty === 'normal') {
-                if (qType === 0) clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${singleSpKo}`;
-                else clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n📸 명소: ${singleSpotKo}`;
-            } else {
-                if (qType === 0) clue = `🍱 특산물: ${singleSpKo}`;
-                else clue = `📸 명소: ${singleSpotKo}`;
-            }
+            document.getElementById('quiz-question').innerText = "어떤 도도부현일까요? (단서가 필요하면 힌트 보기를 누르세요!)";
+            if (currentQuizDifficulty === 'easy') clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${allSpKo}\n📸 명소: ${allSpotKo}`;
+            else if (currentQuizDifficulty === 'normal') clue = qType === 0 ? `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${singleSpKo}` : `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n📸 명소: ${singleSpotKo}`;
+            else clue = qType === 0 ? `🍱 특산물: ${singleSpKo}` : `📸 명소: ${singleSpotKo}`;
         } else {
             document.getElementById('quiz-question').innerText = "どの都道府県でしょうか？ (ヒントが必要な場合はボタンをクリック！)";
-            if (currentQuizDifficulty === 'easy') {
-                clue = `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${allSpJa}\n📸 名所: ${allSpotJa}`;
-            } else if (currentQuizDifficulty === 'normal') {
-                if (qType === 0) clue = `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${singleSpJa}`;
-                else clue = `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n📸 名所: ${singleSpotJa}`;
-            } else { 
-                if (qType === 0) clue = `🍱 特産物: ${singleSpJa}`;
-                else clue = `📸 名所: ${singleSpotJa}`;
-            }
+            if (currentQuizDifficulty === 'easy') clue = `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${allSpJa}\n📸 名所: ${allSpotJa}`;
+            else if (currentQuizDifficulty === 'normal') clue = qType === 0 ? `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${singleSpJa}` : `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n📸 名所: ${singleSpotJa}`;
+            else clue = qType === 0 ? `🍱 特産物: ${singleSpJa}` : `📸 名所: ${singleSpotJa}`;
         }
 
         document.getElementById('quiz-hint').innerText = clue;
@@ -580,44 +589,115 @@ window.app = {
         app.checkAnswer(userInput === answerName);
     },
 
-    // 관리자 기능 - 전체 랭킹 조회 및 삭제
+    // 👑 관리자: 기록 목록 불러오기 (IP 포함)
     showAdmin: async () => {
         showScreen('admin-screen');
-        const list = document.getElementById('user-records');
+        const list = document.getElementById('admin-list');
         list.innerHTML = '<li>로딩 중...</li>';
         
         try {
-            const q = query(collection(db, "records"), orderBy("score", "desc"));
+            const q = query(collection(db, "records"), orderBy("date", "desc"), limit(50));
             const snapshot = await getDocs(q);
             list.innerHTML = '';
             
             snapshot.forEach(d => {
                 const data = d.data();
                 const docId = d.id;
+                const userIp = data.ip || "unknown";
+                
                 const li = document.createElement('li');
+                li.className = 'admin-list-item';
                 li.innerHTML = `
-                    <div style="font-size:13px; line-height:1.4;">
-                        <strong>${data.userId}</strong> (${data.score}점)<br>
-                        <span style="color:#94a3b8;">${data.mode}</span>
+                    <div style="font-size:13px; line-height:1.4; width:100%;">
+                        <strong>${data.userId}</strong> <span style="color:#fbbf24;">(${data.score}점)</span><br>
+                        <span style="color:#94a3b8; font-size:11px;">IP: ${userIp} | ${data.mode}</span>
                     </div>
-                    <button class="del-btn" onclick="app.deleteAdminRecord('${docId}')">삭제</button>
+                    <div class="admin-action-group">
+                        <button class="del-btn" onclick="app.deleteAdminRecord('${docId}')">기록 삭제</button>
+                        <button class="btn-ban" onclick="app.banUser('${data.userId}')">계정 정지</button>
+                        <button class="btn-ban" onclick="app.banIp('${userIp}')">IP 차단</button>
+                    </div>
                 `;
                 list.appendChild(li);
             });
+            if(snapshot.empty) list.innerHTML = '<li>기록이 없습니다.</li>';
         } catch (error) {
             list.innerHTML = '<li>데이터를 불러올 수 없습니다.</li>';
         }
     },
 
-    // 관리자가 특정 기록 삭제
+    // 👑 관리자: 차단 목록 불러오기
+    showBans: async () => {
+        showScreen('admin-screen');
+        const list = document.getElementById('admin-list');
+        list.innerHTML = '<li>차단 목록 로딩 중...</li>';
+        
+        try {
+            list.innerHTML = '<li style="background:transparent; border:none; font-weight:bold; color:#f87171;">🚫 정지된 계정</li>';
+            const userSnap = await getDocs(collection(db, "banned_users"));
+            userSnap.forEach(d => {
+                const data = d.data();
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div><strong>${data.userId}</strong></div>
+                    <button class="btn-unban" onclick="app.unban('${d.id}', 'banned_users')">해제</button>
+                `;
+                list.appendChild(li);
+            });
+
+            const ipTitle = document.createElement('li');
+            ipTitle.style.cssText = "background:transparent; border:none; font-weight:bold; color:#f87171; margin-top:15px;";
+            ipTitle.innerText = "🚫 차단된 IP";
+            list.appendChild(ipTitle);
+
+            const ipSnap = await getDocs(collection(db, "banned_ips"));
+            ipSnap.forEach(d => {
+                const data = d.data();
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div><strong>${data.ip}</strong></div>
+                    <button class="btn-unban" onclick="app.unban('${d.id}', 'banned_ips')">해제</button>
+                `;
+                list.appendChild(li);
+            });
+        } catch (error) {
+            list.innerHTML = '<li>차단 목록을 불러올 수 없습니다.</li>';
+        }
+    },
+
     deleteAdminRecord: async (docId) => {
         if(!confirm("이 기록을 삭제하시겠습니까?")) return;
         try {
             await deleteDoc(doc(db, "records", docId));
-            alert("삭제되었습니다.");
-            app.showAdmin(); // 목록 새로고침
+            app.showAdmin();
         } catch (error) {
             alert("삭제 실패: " + error.message);
         }
+    },
+
+    banUser: async (userId) => {
+        if(userId === ADMIN_ID) return alert("최고 관리자는 차단할 수 없습니다.");
+        if(!confirm(`${userId} 계정을 영구 정지하시겠습니까?`)) return;
+        try {
+            await addDoc(collection(db, "banned_users"), { userId: userId });
+            alert("정지되었습니다.");
+        } catch(e) { alert("오류: " + e.message); }
+    },
+
+    banIp: async (ip) => {
+        if(ip === "unknown") return alert("알 수 없는 IP는 차단할 수 없습니다.");
+        if(!confirm(`IP [${ip}]를 차단하시겠습니까?`)) return;
+        try {
+            await addDoc(collection(db, "banned_ips"), { ip: ip });
+            alert("차단되었습니다.");
+        } catch(e) { alert("오류: " + e.message); }
+    },
+
+    unban: async (docId, collectionName) => {
+        if(!confirm("차단을 해제하시겠습니까?")) return;
+        try {
+            await deleteDoc(doc(db, collectionName, docId));
+            app.showBans(); // 차단 목록 새로고침
+        } catch(e) { alert("해제 실패"); }
     }
 };
