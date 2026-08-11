@@ -46,22 +46,22 @@ body {
     to {background-position: -10000px 5000px;}
 }
 
-/* 컨테이너 (모바일 기본) */
+/* 컨테이너 */
 .container {
     width: 92%;
     max-width: 450px;
     z-index: 10;
-    margin: 40px 0; /* 위아래 여유 공간 확보 */
+    margin: 40px 0;
 }
 
-/* 글래스모피즘 카드 디자인 */
+/* 글래스모피즘 카드 */
 .card {
     background: rgba(20, 20, 35, 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
-    padding: 30px 25px;
+    padding: 30px 22px;
     text-align: center;
     box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.6);
     animation: fadeIn 0.4s ease-out;
@@ -74,7 +74,7 @@ body {
 .hidden { display: none !important; }
 .active { display: block; }
 
-h1, h2 { margin-bottom: 20px; color: #e2e8f0; font-weight: 700; }
+h1, h2 { margin-bottom: 20px; color: #e2e8f0; font-weight: 700; word-break: keep-all; }
 
 /* 내 점수 표시 영역 */
 .header-area { margin-bottom: 20px; }
@@ -90,25 +90,28 @@ h1, h2 { margin-bottom: 20px; color: #e2e8f0; font-weight: 700; }
 }
 .highlight-text { font-size: 18px; color: #fbbf24; }
 
-/* 폼 요소 */
+/* 🎯 폼 요소 (글자 잘림 방지) */
 input, select {
     width: 100%;
-    padding: 14px;
-    margin-bottom: 15px;
+    min-height: 48px; /* 입력창 최소 높이 보장 */
+    padding: 12px 14px;
+    margin-bottom: 12px;
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.95);
-    font-size: 15px;
+    font-size: 14px;
     outline: none;
     color: #1e293b;
     transition: all 0.2s;
+    text-overflow: ellipsis; /* 너무 긴 글자는 '...' 처리 */
+    word-break: keep-all;
 }
 input:focus, select:focus {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
 }
 
-/* 그룹화 디자인 */
+/* 🎯 그룹화 디자인 */
 .menu-group {
     background: rgba(0, 0, 0, 0.4);
     padding: 16px;
@@ -117,35 +120,41 @@ input:focus, select:focus {
     border: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 .select-wrapper {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
 }
 .select-wrapper select, .menu-group select {
-    margin-bottom: 0; /* 플렉스 내부 여백 제거 */
+    margin-bottom: 0;
 }
 
-/* 🎯 버튼 디자인 공통 */
+/* 🎯 버튼 디자인 공통 (찌그러짐 방지) */
 button {
     width: 100%;
-    padding: 15px;
+    min-height: 52px; /* 버튼의 터치/클릭 영역 최소 크기 보장 */
+    padding: 12px 15px;
     border-radius: 10px;
     border: none;
     background: #4f46e5;
     color: white;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
     touch-action: manipulation; 
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    /* 버튼 텍스트 중앙 정렬 방어 코드 */
+    
+    /* 텍스트 렌더링 최적화 */
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    line-height: 1.3;
+    word-break: keep-all; /* 단어 중간에서 잘리지 않도록 보호 */
 }
 button:hover { background: #4338ca; transform: translateY(-2px); }
 button:active { transform: translateY(0) scale(0.98); }
@@ -156,37 +165,34 @@ button.error-btn:hover { background: #be123c; }
 button.highlight-btn {
     background: linear-gradient(135deg, #f59e0b, #d97706);
     color: white;
-    font-size: 17px;
+    font-size: 16px;
     border: 1px solid rgba(255,255,255,0.3);
 }
 button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
 
 /* 유틸리티 및 플렉스 그룹 */
-.btn-group { 
+.btn-group, .danger-zone { 
     display: flex; 
     gap: 10px; 
     width: 100%; 
 }
-.btn-group button { flex: 1; margin-bottom: 0; }
-.bottom-actions { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-}
+.btn-group button, .danger-zone button { flex: 1; margin-bottom: 0; }
+.bottom-actions { display: flex; flex-direction: column; gap: 12px; }
 .bottom-actions button { margin-bottom: 0; }
-.mt-10 { margin-top: 10px !important; } /* 강제 여백 필요시 사용 */
-.error-msg { color: #f87171; font-size: 14px; margin-top: 10px; }
+.mt-10 { margin-top: 10px !important; }
+.error-msg { color: #f87171; font-size: 14px; margin-top: 10px; word-break: keep-all; }
 .divider { border: 0; height: 1px; background: rgba(255,255,255,0.15); margin: 25px 0; }
 .score-display { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fbbf24; }
 
 /* 퀴즈 및 단어장 */
 .question-box {
-    font-size: 17px;
+    font-size: 16px;
     margin: 15px 0;
     padding: 20px;
     background: rgba(0,0,0,0.5);
     border-radius: 12px;
     line-height: 1.5;
+    word-break: keep-all;
 }
 .hint-box {
     background: rgba(74, 222, 128, 0.12);
@@ -196,13 +202,18 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
     white-space: pre-line; 
 }
 
-/* 객관식 버튼 그리드 (모바일 기본) */
+/* 객관식 버튼 그리드 */
 .grid-choices {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
-.choice-btn { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 0; }
+.choice-btn { 
+    background: #1e293b; 
+    border: 1px solid rgba(255,255,255,0.1); 
+    margin-bottom: 0; 
+    min-height: 55px; /* 객관식 버튼은 클릭하기 더 쉽도록 살짝 더 크게 */
+}
 .choice-btn:hover { background: #334155; }
 
 /* 단어장 3D 뒤집기 효과 */
@@ -229,12 +240,13 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 32px;
+    font-size: 28px;
     font-weight: bold;
     border-radius: 16px;
     background: linear-gradient(135deg, #4f46e5, #3730a3);
     padding: 10px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    word-break: keep-all;
 }
 .card-back {
     background: linear-gradient(135deg, #334155, #1e293b);
@@ -262,16 +274,18 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
     align-items: center;
     border: 1px solid rgba(255,255,255,0.05);
 }
-.rank-badge {
-    font-weight: bold;
-    color: #fbbf24;
-    margin-right: 10px;
-}
+.rank-badge { font-weight: bold; color: #fbbf24; margin-right: 10px; }
 
 /* 관리자 패널 버튼 추가 스타일 */
 .admin-list-item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .admin-action-group { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
-.admin-action-group button { padding: 8px 10px; font-size: 13px; margin: 0; flex: 1; }
+.admin-action-group button { 
+    padding: 8px 10px; 
+    font-size: 13px; 
+    margin: 0; 
+    flex: 1; 
+    min-height: 36px; /* 관리자 작은 버튼들은 예외적으로 높이 줄임 */
+}
 .del-btn { background: #e11d48; }
 .del-btn:hover { background: #be123c; }
 .btn-ban { background: #d97706; }
@@ -288,9 +302,10 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
     max-height: 250px; overflow-y: auto;
     background: rgba(0, 0, 0, 0.4); padding: 18px;
     border-radius: 12px; margin-bottom: 15px; color: #cbd5e1;
+    word-break: keep-all;
 }
 
-/* 푸터 (저작권) 스타일 */
+/* 푸터 (저작권) */
 .site-footer {
     position: fixed;
     bottom: 15px;
@@ -308,43 +323,50 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
 ========================================= */
 @media (min-width: 768px) {
     .container {
-        max-width: 700px; /* 데스크탑에서 화면을 더 넓게 */
+        max-width: 650px;
     }
     .card {
         padding: 40px;
     }
+    
+    /* 🎯 폼 컨트롤 및 버튼 가로 배치 최적화 */
     .menu-group {
         flex-direction: row; /* 그룹을 가로로 배치 */
-        align-items: stretch; /* 셀렉트 박스와 버튼 높이를 동일하게 맞춤 */
+        align-items: stretch; /* 왼쪽 드롭다운들과 오른쪽 버튼의 높이를 일치시킴 */
         padding: 20px;
     }
-    .select-wrapper {
-        flex-direction: row; /* 셀렉트 박스끼리 가로 배치 */
-        flex: 2; /* 폼 요소가 영역을 더 많이 차지하도록 설정 */
-    }
-    .select-wrapper select, .menu-group select {
-        height: 100%;
-    }
-    .menu-group button {
-        flex: 1; /* 버튼 영역 할당 */
-    }
     
-    /* 퀴즈 객관식 2x2 그리드 배열 */
-    .grid-choices {
-        display: grid;
-        grid-template-columns: 1fr 1fr; 
-        gap: 12px;
+    /* 드롭다운 영역은 넓게(세로로 쌓임), 버튼 영역은 좁게 차지하도록 비율 설정 */
+    .select-wrapper {
+        flex: 1.7; /* 공간을 더 많이 차지함 (텍스트 잘림 방지) */
+        flex-direction: column; /* 데스크탑에서도 드롭다운끼리는 위아래 배치 유지! */
+        justify-content: center;
+    }
+    .menu-group > select {
+        flex: 1.7; /* 단어장 모드 단일 드롭다운 뷰 대응 */
+    }
+    .menu-group > button {
+        flex: 1; /* 버튼은 옆에 부착 */
+        margin-bottom: 0;
+        height: auto;
     }
 
-    /* 하단 액션 버튼 그룹 (기록 초기화, 탈퇴, 관리자 등) 가로 배치 */
+    /* 하단 액션 버튼 그룹 일렬 배치 */
     .bottom-actions {
         flex-direction: row;
         align-items: stretch;
     }
     .bottom-actions > * {
-        flex: 1; /* 모든 버튼이 동일한 너비를 가짐 */
+        flex: 1; 
     }
     .bottom-actions .danger-zone {
-        flex: 2; /* 구역 내에 버튼이 두 개이므로 2배 비율 할당 */
+        flex: 2; /* 두 개의 버튼이 있으므로 비율을 2배로 부여 */
+    }
+
+    /* 객관식 퀴즈 버튼 2x2 그리드 배열 */
+    .grid-choices {
+        display: grid;
+        grid-template-columns: 1fr 1fr; 
+        gap: 12px;
     }
 }
