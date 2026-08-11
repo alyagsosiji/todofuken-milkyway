@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+// 🚨 deleteUser 임포트 추가됨 🚨
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, deleteDoc, doc, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -17,12 +18,19 @@ const appFirebase = initializeApp(firebaseConfig);
 const auth = getAuth(appFirebase);
 const db = getFirestore(appFirebase);
 
-// 현재 사용자 IP 가져오기
+// 🚨 IP 비동기 수집 로직 (Race Condition 방지)
 let currentIp = "unknown";
-fetch('https://api.ipify.org?format=json')
-    .then(res => res.json())
-    .then(data => { currentIp = data.ip; })
-    .catch(err => console.log("IP 수집 실패"));
+async function fetchIp() {
+    if (currentIp !== "unknown") return currentIp;
+    try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        currentIp = data.ip;
+    } catch (err) {
+        console.log("IP 수집 실패");
+    }
+    return currentIp;
+}
 
 const prefectures = [
     {
@@ -232,7 +240,7 @@ const prefectures = [
     },
     {
         regionKo: "규슈", regionJa: "九州", nameKo: "나가사키현", nameJa: "長崎県",
-        specialties: [{ko:"카스테라",ja:"カステラ"}, {ko:"짬뽕",ja:"ちゃんぽん"}],
+        specialties: [{ko:"카스테라",ja:"カステ라"}, {ko:"짬뽕",ja:"ちゃんぽん"}],
         spots: [{ko:"하우스텐보스",ja:"ハウステンボス"}, {ko:"글로버 정원",ja:"グラバー園"}]
     },
     {
@@ -309,7 +317,9 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         const displayId = user.email.split('@')[0];
 
-        // 🛑 [차단 시스템] 관리자가 아니면, 아이디 및 IP가 차단되었는지 검사
+        // 🚨 IP 수집이 확실히 완료된 후 차단 검사를 진행하도록 Await 추가 (Race Condition 해결)
+        await fetchIp();
+
         if (displayId !== ADMIN_ID) {
             try {
                 const userBanQ = query(collection(db, "banned_users"), where("userId", "==", displayId));
@@ -369,10 +379,11 @@ window.app = {
         }
     },
 
+    // 1️⃣ 기능 1: 기록 초기화 (내 점수 리스트만 삭제, 계정은 유지)
     resetMyRecords: async () => {
         if (!currentUser) return;
         const displayId = currentUser.email.split('@')[0];
-        const isConfirm = confirm("정말로 모든 기록을 삭제하시겠습니까?\n(이 작업은 되돌릴 수 없습니다!)");
+        const isConfirm = confirm("정말로 점수 기록을 초기화하시겠습니까?\n(이 작업은 되돌릴 수 없습니다!)");
         if (!isConfirm) return;
 
         try {
@@ -386,17 +397,54 @@ window.app = {
             });
             
             await Promise.all(deletePromises);
-            alert("기록이 초기화되었습니다.");
+            alert("기록이 성공적으로 초기화되었습니다.");
             app.updateMyBestScore();
         } catch (error) {
             alert("기록 삭제 중 오류가 발생했습니다.");
         }
     },
 
+    // 2️⃣ 기능 2: 계정 삭제 (내 점수 기록 전체 삭제 + Firebase Auth 계정 영구 삭제)
+    deleteAccount: async () => {
+        if (!currentUser) return;
+        
+        const isConfirm = confirm("🚨 정말로 계정을 탈퇴하시겠습니까?\n내 기록과 계정 정보가 모두 영구 삭제되며, 복구할 수 없습니다.");
+        if (!isConfirm) return;
+
+        try {
+            const displayId = currentUser.email.split('@')[0];
+
+            // 1) 남겨진 쓰레기 데이터 방지를 위해 내 기록 먼저 일괄 삭제
+            const q = query(collection(db, "records"), where("userId", "==", displayId));
+            const snapshot = await getDocs(q);
+            const deletePromises = [];
+            snapshot.forEach(document => {
+                deletePromises.push(deleteDoc(doc(db, "records", document.id)));
+            });
+            await Promise.all(deletePromises);
+
+            // 2) 유저 계정 자체를 파이어베이스 Auth에서 완전히 삭제
+            await deleteUser(currentUser);
+            
+            alert("계정이 성공적으로 탈퇴 처리되었습니다. 이용해 주셔서 감사합니다.");
+            // onAuthStateChanged 트리거가 작동하여 자동으로 auth-screen 으로 이동됨
+            
+        } catch (error) {
+            console.error("계정 삭제 오류:", error);
+            
+            // 파이어베이스 보안 정책: 최근 로그인한 상태가 아니면 계정 삭제를 거부함
+            if (error.code === 'auth/requires-recent-login') {
+                alert("보안 정책에 의해, 계정 탈퇴를 위해서는 다시 로그인해야 합니다.\n확인을 누르면 로그아웃되며, 다시 로그인 후 탈퇴를 진행해 주세요.");
+                app.logout();
+            } else {
+                alert("계정 탈퇴 중 오류가 발생했습니다: " + error.message);
+            }
+        }
+    },
+
     goHome: async () => {
         if(currentMode.includes('quiz') && score > 0) {
             const displayId = currentUser.email.split('@')[0];
-            // 기록 저장 시 IP도 함께 저장 (관리자가 확인하고 차단하기 위함)
             await addDoc(collection(db, "records"), {
                 userId: displayId,
                 score: score,
@@ -589,7 +637,7 @@ window.app = {
         app.checkAnswer(userInput === answerName);
     },
 
-    // 👑 관리자: 기록 목록 불러오기 (IP 포함)
+    // 👑 관리자
     showAdmin: async () => {
         showScreen('admin-screen');
         const list = document.getElementById('admin-list');
@@ -626,7 +674,6 @@ window.app = {
         }
     },
 
-    // 👑 관리자: 차단 목록 불러오기
     showBans: async () => {
         showScreen('admin-screen');
         const list = document.getElementById('admin-list');
@@ -697,7 +744,7 @@ window.app = {
         if(!confirm("차단을 해제하시겠습니까?")) return;
         try {
             await deleteDoc(doc(db, collectionName, docId));
-            app.showBans(); // 차단 목록 새로고침
+            app.showBans();
         } catch(e) { alert("해제 실패"); }
     }
 };
