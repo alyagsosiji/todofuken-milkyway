@@ -113,8 +113,8 @@
         <section id="privacy-screen" class="screen card hidden">
             <h2>개인정보처리방침</h2>
             <div class="policy-content">
-                <p><strong>1. 수집 항목:</strong> 아이디, 퀴즈 점수, 학습 모드</p>
-                <p><strong>2. 이용 목적:</strong> 로그인 유지, 랭킹 및 학습 기록 관리</p>
+                <p><strong>1. 수집 항목:</strong> 아이디, 접속 IP, 퀴즈 점수, 학습 모드</p>
+                <p><strong>2. 이용 목적:</strong> 로그인 유지, 랭킹 관리 및 어뷰징 유저 차단</p>
                 <p><strong>3. 보관 및 파기:</strong> '기록 초기화' 시 영구 삭제, 서비스 종료 시 파기</p>
             </div>
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
@@ -164,9 +164,13 @@
 
         <!-- 관리자 화면 -->
         <section id="admin-screen" class="screen card hidden">
-            <h2>🛠️ 관리자 패널 (기록 관리)</h2>
+            <h2>🛠️ 관리자 패널</h2>
+            <div class="admin-tabs btn-group" style="margin-bottom: 15px;">
+                <button class="secondary" onclick="app.showAdmin()">기록 관리</button>
+                <button class="secondary" onclick="app.showBans()">차단 관리</button>
+            </div>
             <div class="admin-data">
-                <ul id="user-records" class="styled-list"></ul>
+                <ul id="admin-list" class="styled-list"></ul>
             </div>
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
         </section>
