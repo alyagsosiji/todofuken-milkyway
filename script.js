@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, deleteDoc, doc, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAYGQglJDG_-q_g6rIz5gB_3oxN4wdV8I0",
@@ -225,7 +225,7 @@ const prefectures = [
     },
     {
         regionKo: "규슈", regionJa: "九州", nameKo: "나가사키현", nameJa: "長崎県",
-        specialties: [{ko:"카스테라",ja:"カステラ"}, {ko:"짬뽕",ja:"ちゃんぽん"}],
+        specialties: [{ko:"카스테라",ja:"カステ라"}, {ko:"짬뽕",ja:"ちゃんぽん"}],
         spots: [{ko:"하우스텐보스",ja:"ハウステンボス"}, {ko:"글로버 정원",ja:"グラバー園"}]
     },
     {
@@ -257,7 +257,8 @@ const prefectures = [
 
 let currentUser = null;
 let currentMode = ''; 
-let currentQuizLang = 'ko'; // 선택한 퀴즈 언어 모드 저장용
+let currentQuizLang = 'ko'; 
+let currentQuizDifficulty = 'normal';
 let currentQuizPrefecture = null;
 let score = 0;
 let flashcardIndex = 0;
@@ -292,7 +293,7 @@ async function handleAuth(action) {
             msg.innerText = "";
         }
     } catch (error) {
-        msg.style.color = "#ff6b6b"; 
+        msg.style.color = "#f87171"; 
         msg.innerText = "오류: " + error.message;
     }
 }
@@ -303,6 +304,9 @@ onAuthStateChanged(auth, (user) => {
         const displayId = user.email.split('@')[0];
         document.getElementById('welcome-msg').innerText = `${displayId}님, 환영합니다!`;
         showScreen('main-screen');
+        
+        // 내 최고 점수 업데이트
+        app.updateMyBestScore();
         
         if (displayId === ADMIN_ID) {
             document.getElementById('admin-btn').classList.remove('hidden');
@@ -323,21 +327,34 @@ window.app = {
         if (type === 'privacy') showScreen('privacy-screen');
     },
 
+    // 로그인한 유저의 최고 점수 불러오기
+    updateMyBestScore: async () => {
+        if (!currentUser) return;
+        const displayId = currentUser.email.split('@')[0];
+        try {
+            const q = query(collection(db, "records"), where("userId", "==", displayId));
+            const snapshot = await getDocs(q);
+            let maxScore = 0;
+            snapshot.forEach(doc => {
+                const s = doc.data().score;
+                if(s > maxScore) maxScore = s;
+            });
+            document.getElementById('my-best-score').innerText = maxScore;
+        } catch (error) {
+            console.error("점수 조회 실패", error);
+        }
+    },
+
     resetMyRecords: async () => {
         if (!currentUser) return;
         const displayId = currentUser.email.split('@')[0];
-        
         const isConfirm = confirm("정말로 모든 기록을 삭제하시겠습니까?\n(이 작업은 되돌릴 수 없습니다!)");
         if (!isConfirm) return;
 
         try {
             const q = query(collection(db, "records"), where("userId", "==", displayId));
             const snapshot = await getDocs(q);
-            
-            if (snapshot.empty) {
-                alert("삭제할 기록이 없습니다.");
-                return;
-            }
+            if (snapshot.empty) return alert("삭제할 기록이 없습니다.");
 
             const deletePromises = [];
             snapshot.forEach(document => {
@@ -345,8 +362,8 @@ window.app = {
             });
             
             await Promise.all(deletePromises);
-            alert("기록이 성공적으로 초기화되었습니다.");
-            
+            alert("기록이 초기화되었습니다.");
+            app.updateMyBestScore(); // 점수 리셋 반영
         } catch (error) {
             console.error("기록 삭제 오류:", error);
             alert("기록 삭제 중 오류가 발생했습니다.");
@@ -363,9 +380,56 @@ window.app = {
                 date: new Date().toISOString()
             });
             alert(`기록이 저장되었습니다! 최종 점수: ${score}`);
+            app.updateMyBestScore(); // 홈으로 돌아갈 때 내 점수 갱신
         }
         currentMode = ''; 
         showScreen('main-screen');
+    },
+
+    // 랭킹 보여주기
+    showRanking: async () => {
+        showScreen('ranking-screen');
+        const list = document.getElementById('ranking-list');
+        list.innerHTML = '<li>로딩 중...</li>';
+        
+        try {
+            const q = query(collection(db, "records"), orderBy("score", "desc"), limit(50));
+            const snapshot = await getDocs(q);
+            list.innerHTML = '';
+            
+            let uniqueUsers = new Set();
+            let rank = 1;
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                // 1유저당 1개의 최고 점수만 랭킹에 표시 (중복 방지)
+                if(!uniqueUsers.has(data.userId) && uniqueUsers.size < 10) {
+                    uniqueUsers.add(data.userId);
+                    
+                    let badge = `${rank}위`;
+                    if(rank === 1) badge = '🥇 1위';
+                    else if(rank === 2) badge = '🥈 2위';
+                    else if(rank === 3) badge = '🥉 3위';
+
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div>
+                            <span class="rank-badge">${badge}</span> 
+                            <strong>${data.userId}</strong>님
+                        </div>
+                        <div style="color: #4ade80; font-weight: bold;">${data.score}점</div>
+                    `;
+                    list.appendChild(li);
+                    rank++;
+                }
+            });
+            
+            if (uniqueUsers.size === 0) {
+                list.innerHTML = '<li>아직 등록된 랭킹이 없습니다!</li>';
+            }
+        } catch (error) {
+            list.innerHTML = '<li>랭킹을 불러오는데 실패했습니다.</li>';
+        }
     },
 
     startFlashcard: () => {
@@ -383,9 +447,8 @@ window.app = {
         
         document.getElementById('flashcard').classList.remove('flipped');
         
-        // 도(지방) 부분을 더 확실하게 표기하기 위해 디자인 적용
-        const regionKoStr = `<span style="font-size:0.55em; color:#a5b4fc; display:block; margin-bottom:5px; font-weight:normal;">${p.regionKo} 지방</span>`;
-        const regionJaStr = `<span style="font-size:0.55em; color:#a5b4fc; display:block; margin-bottom:5px; font-weight:normal;">${p.regionJa} 地方</span>`;
+        const regionKoStr = `<span style="font-size:0.5em; color:#a5b4fc; display:block; margin-bottom:8px; font-weight:normal;">${p.regionKo} 지방</span>`;
+        const regionJaStr = `<span style="font-size:0.5em; color:#a5b4fc; display:block; margin-bottom:8px; font-weight:normal;">${p.regionJa} 地方</span>`;
 
         if (lang === 'ko') {
             front.innerHTML = `${regionKoStr} ${p.nameKo}`;
@@ -401,10 +464,11 @@ window.app = {
     prevCard: () => { flashcardIndex = (flashcardIndex - 1 + prefectures.length) % prefectures.length; app.updateFlashcard(); },
 
     startQuiz: (type) => {
-        currentMode = 'quiz-' + type;
         currentQuizLang = document.getElementById('lang-quiz-' + type).value;
-        score = 0;
+        currentQuizDifficulty = document.getElementById('diff-quiz-' + type).value;
+        currentMode = `quiz-${type}(${currentQuizDifficulty})`; 
         
+        score = 0;
         document.getElementById('current-score').innerText = score;
         document.getElementById('quiz-feedback').innerText = '';
         showScreen('quiz-screen');
@@ -419,7 +483,6 @@ window.app = {
         app.nextQuestion();
     },
 
-    // 힌트 보기 버튼 클릭 시 실행
     showHint: () => {
         document.getElementById('show-hint-btn').classList.add('hidden');
         document.getElementById('quiz-hint').classList.remove('hidden');
@@ -430,34 +493,52 @@ window.app = {
         document.getElementById('short-answer-input').value = '';
         currentQuizPrefecture = getRandom(prefectures);
         
-        // 문제 전환 시 힌트 다시 숨기기
         document.getElementById('show-hint-btn').classList.remove('hidden');
         document.getElementById('quiz-hint').classList.add('hidden');
         document.getElementById('quiz-hint').innerText = '';
 
-        const qType = Math.floor(Math.random() * 3);
+        const qType = Math.floor(Math.random() * 2); 
         let clue = "";
         
-        // 언어 모드에 맞춰 문제/단서 생성
+        let allSpKo = currentQuizPrefecture.specialties.map(s => s.ko).join(', ');
+        let allSpJa = currentQuizPrefecture.specialties.map(s => s.ja).join(', ');
+        let allSpotKo = currentQuizPrefecture.spots.map(s => s.ko).join(', ');
+        let allSpotJa = currentQuizPrefecture.spots.map(s => s.ja).join(', ');
+        
+        let singleSpKo = getRandom(currentQuizPrefecture.specialties).ko;
+        let singleSpJa = getRandom(currentQuizPrefecture.specialties).ja;
+        let singleSpotKo = getRandom(currentQuizPrefecture.spots).ko;
+        let singleSpotJa = getRandom(currentQuizPrefecture.spots).ja;
+
         if (currentQuizLang === 'ko') {
             document.getElementById('quiz-question').innerText = "어떤 도도부현일까요? (단서가 필요하면 힌트 보기를 누르세요!)";
-            if (qType === 0) clue = `특산물: ${getRandom(currentQuizPrefecture.specialties).ko}`;
-            else if (qType === 1) clue = `유명한 곳: ${getRandom(currentQuizPrefecture.spots).ko}`;
-            else clue = `어느 지방? ${currentQuizPrefecture.regionKo} 지방`;
+            if (currentQuizDifficulty === 'easy') {
+                clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${allSpKo}\n📸 명소: ${allSpotKo}`;
+            } else if (currentQuizDifficulty === 'normal') {
+                if (qType === 0) clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${singleSpKo}`;
+                else clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n📸 명소: ${singleSpotKo}`;
+            } else {
+                if (qType === 0) clue = `🍱 특산물: ${singleSpKo}`;
+                else clue = `📸 명소: ${singleSpotKo}`;
+            }
         } else {
             document.getElementById('quiz-question').innerText = "どの都道府県でしょうか？ (ヒントが必要な場合はボタンをクリック！)";
-            if (qType === 0) clue = `特産物: ${getRandom(currentQuizPrefecture.specialties).ja}`;
-            else if (qType === 1) clue = `有名な場所: ${getRandom(currentQuizPrefecture.spots).ja}`;
-            else clue = `どの地方？ ${currentQuizPrefecture.regionJa} 地方`;
+            if (currentQuizDifficulty === 'easy') {
+                clue = `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${allSpJa}\n📸 名所: ${allSpotJa}`;
+            } else if (currentQuizDifficulty === 'normal') {
+                if (qType === 0) clue = `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${singleSpJa}`;
+                else clue = `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n📸 名所: ${singleSpotJa}`;
+            } else { 
+                if (qType === 0) clue = `🍱 特産物: ${singleSpJa}`;
+                else clue = `📸 名所: ${singleSpotJa}`;
+            }
         }
 
-        // 힌트 박스에 내용 저장
         document.getElementById('quiz-hint').innerText = clue;
 
-        // 정답 설정 (언어 모드에 따라 다름)
         const answerName = currentQuizLang === 'ko' ? currentQuizPrefecture.nameJa : currentQuizPrefecture.nameKo;
 
-        if (currentMode === 'quiz-multiple') {
+        if (currentMode.includes('multiple')) {
             let options = [currentQuizPrefecture];
             while(options.length < 4) {
                 let randP = getRandom(prefectures);
@@ -499,21 +580,44 @@ window.app = {
         app.checkAnswer(userInput === answerName);
     },
 
+    // 관리자 기능 - 전체 랭킹 조회 및 삭제
     showAdmin: async () => {
         showScreen('admin-screen');
         const list = document.getElementById('user-records');
-        list.innerHTML = '로딩 중...';
+        list.innerHTML = '<li>로딩 중...</li>';
         
-        const q = query(collection(db, "records"), orderBy("date", "desc"));
-        const snapshot = await getDocs(q);
-        list.innerHTML = '';
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const dateStr = new Date(data.date).toLocaleString();
-            const li = document.createElement('li');
-            li.innerText = `[${dateStr}] ${data.userId}님 - ${data.mode} 모드 : ${data.score}점`;
-            list.appendChild(li);
-        });
+        try {
+            const q = query(collection(db, "records"), orderBy("score", "desc"));
+            const snapshot = await getDocs(q);
+            list.innerHTML = '';
+            
+            snapshot.forEach(d => {
+                const data = d.data();
+                const docId = d.id;
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div style="font-size:13px; line-height:1.4;">
+                        <strong>${data.userId}</strong> (${data.score}점)<br>
+                        <span style="color:#94a3b8;">${data.mode}</span>
+                    </div>
+                    <button class="del-btn" onclick="app.deleteAdminRecord('${docId}')">삭제</button>
+                `;
+                list.appendChild(li);
+            });
+        } catch (error) {
+            list.innerHTML = '<li>데이터를 불러올 수 없습니다.</li>';
+        }
+    },
+
+    // 관리자가 특정 기록 삭제
+    deleteAdminRecord: async (docId) => {
+        if(!confirm("이 기록을 삭제하시겠습니까?")) return;
+        try {
+            await deleteDoc(doc(db, "records", docId));
+            alert("삭제되었습니다.");
+            app.showAdmin(); // 목록 새로고침
+        } catch (error) {
+            alert("삭제 실패: " + error.message);
+        }
     }
 };
