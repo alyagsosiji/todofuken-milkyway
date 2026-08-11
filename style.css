@@ -324,3 +324,29 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
         gap: 10px;
     }
 }
+
+/* 관리자 패널 버튼 추가 스타일 */
+.admin-list-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+.admin-action-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+.admin-action-group button {
+    padding: 6px 10px;
+    font-size: 12px;
+    width: auto;
+    margin: 0;
+    border-radius: 6px;
+    flex: 1;
+}
+.btn-ban { background: #d97706; }
+.btn-ban:hover { background: #b45309; }
+.btn-unban { background: #10b981; }
+.btn-unban:hover { background: #059669; }
