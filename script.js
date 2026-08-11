@@ -511,7 +511,7 @@ window.app = {
         let singleSpotJa = getRandom(currentQuizPrefecture.spots).ja;
 
         if (currentQuizLang === 'ko') {
-            document.getElementById('quiz-question').innerText = "어떤 도도부현일까요? (단서가 필요하면 힌트 보기를 누르세요!)";
+            document.getElementById('quiz-question').innerText = "어떤 도도부현일까요?";
             if (currentQuizDifficulty === 'easy') {
                 clue = `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${allSpKo}\n📸 명소: ${allSpotKo}`;
             } else if (currentQuizDifficulty === 'normal') {
