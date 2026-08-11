@@ -80,12 +80,12 @@
             
             <!-- 하단 액션 버튼 그룹 (기록 초기화 / 계정 탈퇴 분리) -->
             <div class="bottom-actions">
-                <div style="display: flex; gap: 10px;">
-                    <button class="menu-btn error-btn" style="flex: 1;" onclick="app.resetMyRecords()">🗑️ 기록 초기화</button>
-                    <button class="menu-btn" style="flex: 1; background: #9f1239;" onclick="app.deleteAccount()">🚨 계정 탈퇴</button>
+                <div class="danger-zone btn-group">
+                    <button class="menu-btn error-btn" onclick="app.resetMyRecords()">🗑️ 기록 초기화</button>
+                    <button class="menu-btn" style="background: #9f1239;" onclick="app.deleteAccount()">🚨 계정 탈퇴</button>
                 </div>
-                <button id="admin-btn" class="menu-btn admin-only hidden mt-10" onclick="app.showAdmin()">🛠️ 관리자 패널</button>
-                <button class="menu-btn secondary mt-10" onclick="app.logout()">로그아웃</button>
+                <button id="admin-btn" class="menu-btn admin-only hidden" onclick="app.showAdmin()">🛠️ 관리자 패널</button>
+                <button class="menu-btn secondary" onclick="app.logout()">로그아웃</button>
             </div>
 
             <div class="policy-links">
