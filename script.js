@@ -80,6 +80,24 @@ const prefectures = [
     { regionKo: "오키나와", regionJa: "沖縄", nameKo: "오키나와현", nameJa: "沖縄県", specialties: [{ko:"고야 참푸루",ja:"ゴーヤーチャンプルー"}, {ko:"친스코",ja:"ちんすこう"}, {ko:"우미부도",ja:"海ぶどう"}], spots: [{ko:"츄라우미 수족관",ja:"美ら海水族館"}, {ko:"슈리성",ja:"首里城"}, {ko:"만자모",ja:"万座毛"}] }
 ];
 
+// 🌟 끊어짐 없는 고화질 맵 이미지 데이터 매핑 (위키백과 공식 파일명 활용)
+// 엑박 방지를 위해 %C5%8D(효고현 특수문자) 등을 정확히 세팅
+const wikiFileNames = [
+    "01_Hokkaido", "02_Aomori", "03_Iwate", "04_Miyagi", "05_Akita", "06_Yamagata", "07_Fukushima",
+    "08_Ibaraki", "09_Tochigi", "10_Gunma", "11_Saitama", "12_Chiba", "13_Tokyo", "14_Kanagawa",
+    "15_Niigata", "16_Toyama", "17_Ishikawa", "18_Fukui", "19_Yamanashi", "20_Nagano",
+    "21_Gifu", "22_Shizuoka", "23_Aichi", "24_Mie", "25_Shiga", "26_Kyoto", "27_Osaka",
+    "28_Hy%C5%8Dgo", "29_Nara", "30_Wakayama", "31_Tottori", "32_Shimane", "33_Okayama",
+    "34_Hiroshima", "35_Yamaguchi", "36_Tokushima", "37_Kagawa", "38_Ehime", "39_Kochi",
+    "40_Fukuoka", "41_Saga", "42_Nagasaki", "43_Kumamoto", "44_Oita", "45_Miyazaki",
+    "46_Kagoshima", "47_Okinawa"
+];
+
+prefectures.forEach((p, index) => {
+    // 💡 해결의 핵심: ?width=800 을 붙여서 원본 SVG 다운로드를 막고 선명한 PNG 썸네일로 화면에 띄움
+    p.mapUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Japan_with_highlight_on_${wikiFileNames[index]}_prefecture.svg?width=800`;
+});
+
 let currentUser = null;
 let currentMode = ''; 
 let currentQuizLang = 'ko'; 
@@ -306,7 +324,7 @@ window.app = {
     },
     
     updateFlashcard: () => {
-        const langStr = document.getElementById('lang-flashcard').value; // 'ko-ja' or 'ja-ko'
+        const langStr = document.getElementById('lang-flashcard').value; 
         const [frontLang, backLang] = langStr.split('-');
         
         const p = prefectures[flashcardIndex];
@@ -374,7 +392,6 @@ window.app = {
         
         const [clueLang, ansLang] = currentQuizLang.split('-');
         
-        // 🌟 힌트 영역 및 버튼 초기화
         document.getElementById('show-hint-btn').classList.add('hidden');
         document.getElementById('quiz-hint').classList.add('hidden');
         document.getElementById('quiz-hint').innerText = '';
@@ -392,21 +409,25 @@ window.app = {
         let singleSpotKo = getRandom(currentQuizPrefecture.spots).ko;
         let singleSpotJa = getRandom(currentQuizPrefecture.spots).ja;
 
-        // 🌟 지도 퀴즈 모드일 경우 이미지 표시 및 텍스트 힌트 논리 완벽 제어
+        // 🌟 지도 퀴즈 모드일 경우 이미지 표시
         if (currentMode.includes('quiz-map')) {
             document.getElementById('quiz-map-container').classList.remove('hidden');
-            // 실제 사용 시 파일명 경로로 변경 (예: assets/홋카이도.png)
-            document.getElementById('quiz-map-img').src = `https://placehold.co/300x200/1e293b/4ade80?text=${currentQuizPrefecture.nameKo}+Map`;
+            
+            const mapImgElement = document.getElementById('quiz-map-img');
+            // 위키백과 API에서 생성한 고화질 투명 맵 세팅
+            mapImgElement.src = currentQuizPrefecture.mapUrl;
+            // 지도가 검은 화면에서도 선명하게 보이도록 하얀색 캔버스를 깔아줌
+            mapImgElement.style.backgroundColor = "#ffffff";
+            mapImgElement.style.padding = "10px";
+            
             document.getElementById('quiz-question').innerText = "이 지도의 도도부현은 어디일까요?";
             
-            // 지도 퀴즈 '쉬움' 일 때만 텍스트 단서 제공, '보통'일 때는 단서 없음.
             if (currentQuizDifficulty === 'easy') {
                 clue = clueLang === 'ko'
                     ? `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${allSpKo}\n📸 명소: ${allSpotKo}`
                     : `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${allSpJa}\n📸 名所: ${allSpotJa}`;
             }
         } 
-        // 🌟 일반 퀴즈 (객관식, 주관식) 일 경우
         else {
             document.getElementById('quiz-question').innerText = clueLang === 'ko' 
                 ? "어떤 도도부현일까요? (단서가 필요하면 힌트 보기를 누르세요!)"
@@ -425,16 +446,13 @@ window.app = {
             }
         }
 
-        // 힌트 내용 세팅 (힌트 텍스트가 있을 때만 힌트 버튼 보이기)
         if (clue !== "") {
             document.getElementById('quiz-hint').innerText = clue;
             document.getElementById('show-hint-btn').classList.remove('hidden');
         }
 
-        // 정답 언어 지정
         const answerName = ansLang === 'ko' ? currentQuizPrefecture.nameKo : currentQuizPrefecture.nameJa;
 
-        // 보기 생성 (객관식 또는 지도 퀴즈)
         if (currentMode.includes('multiple') || currentMode.includes('map')) {
             let options = [currentQuizPrefecture];
             while(options.length < 4) {
@@ -450,7 +468,6 @@ window.app = {
                 btn.onclick = () => app.checkAnswer(optionName === answerName);
             });
         } else {
-            // 주관식 입력창 플레이스홀더
             document.getElementById('short-answer-input').placeholder = ansLang === 'ko' ? "정답 입력 (ex: 홋카이도)" : "정답 입력 (ex: 北海道)";
         }
     },
