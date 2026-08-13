@@ -354,6 +354,21 @@ window.app = {
     nextCard: () => { flashcardIndex = (flashcardIndex + 1) % prefectures.length; app.updateFlashcard(); },
     prevCard: () => { flashcardIndex = (flashcardIndex - 1 + prefectures.length) % prefectures.length; app.updateFlashcard(); },
 
+    // 🌟 지도 모달을 여는 함수
+    openMapModal: () => {
+        const mapSrc = document.getElementById('quiz-map-img').src;
+        if (!mapSrc) return;
+        document.getElementById('modal-map-img').src = mapSrc;
+        document.getElementById('map-modal').classList.remove('hidden');
+    },
+
+    // 🌟 지도 모달을 닫는 함수 (배경 클릭이나 닫기 버튼 클릭 시)
+    closeMapModal: (e) => {
+        if (e.target.id === 'map-modal' || e.target.classList.contains('close-modal')) {
+            document.getElementById('map-modal').classList.add('hidden');
+        }
+    },
+
     startQuiz: (type) => {
         currentQuizLang = document.getElementById('lang-quiz-' + type).value;
         currentQuizDifficulty = document.getElementById('diff-quiz-' + type).value;
@@ -481,7 +496,7 @@ window.app = {
 
     checkShortAnswer: () => {
         const userInput = document.getElementById('short-answer-input').value.trim();
-        if(!userInput) return; // 빈칸 방지
+        if(!userInput) return; 
         const [clueLang, ansLang] = currentQuizLang.split('-');
         const answerName = ansLang === 'ko' ? currentQuizPrefecture.nameKo : currentQuizPrefecture.nameJa;
         app.checkAnswer(userInput === answerName);
@@ -598,7 +613,6 @@ window.app = {
     }
 };
 
-// 🌟 주관식 입력창에서 'Enter' 키를 누르면 바로 제출되도록 이벤트 리스너 추가
 document.getElementById('short-answer-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         window.app.checkShortAnswer();
