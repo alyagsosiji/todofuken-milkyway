@@ -161,7 +161,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         currentUser = user;
-        document.getElementById('welcome-msg').innerText = `${displayId}님, 환영합니다!`;
+        document.getElementById('welcome-msg').innerText = `${displayId}`;
         showScreen('main-screen');
         
         app.updateMyBestScore();
