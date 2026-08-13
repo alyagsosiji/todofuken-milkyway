@@ -169,7 +169,7 @@
             <p class="score-display">점수: <span id="current-score">0</span></p>
             
             <div id="quiz-map-container" class="hidden">
-                <img id="quiz-map-img" src="" alt="도도부현 지도">
+                <img id="quiz-map-img" src="" alt="도도부현 지도" onclick="app.openMapModal()" title="클릭해서 확대보기">
             </div>
 
             <div id="quiz-question" class="question-box">문제</div>
@@ -204,6 +204,11 @@
             </div>
             <button class="secondary mt-10" onclick="app.goHome()">돌아가기</button>
         </section>
+    </div>
+
+    <div id="map-modal" class="hidden" onclick="app.closeMapModal(event)">
+        <span class="close-modal">&times;</span>
+        <img id="modal-map-img" src="" alt="확대된 지도">
     </div>
 
     <footer class="site-footer">
