@@ -12,20 +12,24 @@ body { background-color: #050510; color: #fff; min-height: 100vh; display: flex;
 .container { width: 92%; max-width: 450px; z-index: 10; margin: 40px 0; }
 .card { background: rgba(20, 20, 35, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 30px 22px; text-align: center; box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.6); animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 유틸리티 및 기본 텍스트 */
 .hidden { display: none !important; } .active { display: block; }
 h1, h2 { margin-bottom: 20px; color: #e2e8f0; font-weight: 700; word-break: keep-all; }
-
 .header-area { margin-bottom: 20px; }
 .my-score-board { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: #fef08a; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; display: inline-block; }
 .highlight-text { font-size: 18px; color: #fbbf24; }
 
+/* 입력창 및 셀렉트 박스 */
 input, select { width: 100%; min-height: 48px; padding: 12px 14px; margin-bottom: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.95); font-size: 14px; outline: none; color: #1e293b; transition: all 0.2s; text-overflow: ellipsis; word-break: keep-all; }
 input:focus, select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3); }
 
+/* 그룹 배치 레이아웃 */
 .menu-group { background: rgba(0, 0, 0, 0.4); padding: 16px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 12px; }
 .select-wrapper { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .select-wrapper select, .menu-group select { margin-bottom: 0; }
 
+/* 버튼 공통 스타일 */
 button { width: 100%; min-height: 52px; padding: 12px 15px; border-radius: 10px; border: none; background: #4f46e5; color: white; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.3; word-break: keep-all; }
 button:hover { background: #4338ca; transform: translateY(-2px); }
 button:active { transform: translateY(0) scale(0.98); }
@@ -45,28 +49,53 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
 .divider { border: 0; height: 1px; background: rgba(255,255,255,0.15); margin: 25px 0; }
 .score-display { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fbbf24; }
 
-/* 🌟 지도 퀴즈 스타일 */
+/* 🌟 지도 퀴즈 컨테이너 및 썸네일 스타일 */
 #quiz-map-container { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: center; }
-#quiz-map-img { max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; background-color: #ffffff; padding: 10px; }
+#quiz-map-img { 
+    max-width: 100%; max-height: 200px; object-fit: contain; 
+    border-radius: 8px; background-color: #ffffff; padding: 10px; 
+    cursor: zoom-in; /* 🌟 클릭해서 확대됨을 마우스 커서로 표시 */
+    transition: transform 0.2s ease;
+}
+#quiz-map-img:hover { transform: scale(1.02); }
 
-/* 🌟 문제 및 힌트 겹침 수정 */
+/* 🌟 지도 클릭 시 나타나는 확대 팝업(모달) 스타일 */
+#map-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+    z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px;
+}
+#modal-map-img {
+    max-width: 95%; max-height: 85%; background-color: #ffffff;
+    border-radius: 12px; padding: 15px; object-fit: contain;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.close-modal {
+    position: absolute; top: 25px; right: 30px; color: rgba(255, 255, 255, 0.8);
+    font-size: 40px; font-weight: bold; cursor: pointer; z-index: 10000; transition: 0.2s;
+}
+.close-modal:hover { color: white; transform: scale(1.1); }
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* 퀴즈 박스 및 힌트 */
 .question-box { font-size: 16px; margin: 15px 0; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 12px; line-height: 1.5; word-break: keep-all; }
 .hint-box { background: rgba(74, 222, 128, 0.12); color: #4ade80; border: 1px dashed rgba(74, 222, 128, 0.5); text-align: left; white-space: pre-line; }
-#show-hint-btn { margin-bottom: 15px; } /* 버튼 겹침 방지 여백 추가 */
+#show-hint-btn { margin-bottom: 15px; } 
 
-/* 🌟 주관식 입력창 UI 가로 배치 최적화 */
+/* 주관식 및 객관식 퀴즈 버튼 */
 #short-answer-box { display: flex; gap: 10px; align-items: center; width: 100%; }
 #short-answer-box input { flex: 7; margin-bottom: 0; }
 #short-answer-box button { flex: 3; margin-bottom: 0; min-height: 48px; }
-
-/* 🌟 화면 덜컹거림 방지 */
 #quiz-feedback { margin-top: 15px; font-size: 15px; font-weight: bold; min-height: 24px; }
-
 .grid-choices { display: flex; flex-direction: column; gap: 10px; }
 .choice-btn { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 0; min-height: 55px; }
 .choice-btn:hover { background: #334155; }
 
-/* 단어장 3D 뒤집기 */
+/* 단어장 3D 카드 */
 .flashcard { width: 100%; height: 260px; perspective: 1000px; margin-bottom: 20px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .card-inner { width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; position: relative; }
 .flashcard.flipped .card-inner { transform: rotateY(180deg); }
@@ -75,24 +104,22 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
 .fc-title { font-size: 28px; font-weight: bold; margin-bottom: 15px; }
 .fc-details { font-size: 13px; font-weight: normal; margin-top: 5px; text-align: left; line-height: 1.5; color: #cbd5e1; width: 100%; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
 
+/* 리스트, 관리자, 푸터 등 나머지 요소 */
 .styled-list { list-style: none; max-height: 300px; overflow-y: auto; padding-right: 5px; text-align: left; }
 .styled-list::-webkit-scrollbar { width: 6px; }
 .styled-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
 .styled-list li { background: rgba(0,0,0,0.4); margin-bottom: 8px; padding: 12px 15px; border-radius: 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
 .rank-badge { font-weight: bold; color: #fbbf24; margin-right: 10px; }
-
 .admin-list-item { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .admin-action-group { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
 .admin-action-group button { padding: 8px 10px; font-size: 13px; margin: 0; flex: 1; min-height: 36px; }
 .del-btn { background: #e11d48; } .del-btn:hover { background: #be123c; }
 .btn-ban { background: #d97706; } .btn-ban:hover { background: #b45309; }
 .btn-unban { background: #10b981; } .btn-unban:hover { background: #059669; }
-
 .policy-links { margin-top: 25px; font-size: 13px; color: #94a3b8; }
 .policy-links span { cursor: pointer; text-decoration: underline; margin: 0 8px; transition: color 0.2s; }
 .policy-links span:hover { color: #fff; }
 .policy-content { text-align: left; font-size: 14px; line-height: 1.6; max-height: 250px; overflow-y: auto; background: rgba(0, 0, 0, 0.4); padding: 18px; border-radius: 12px; margin-bottom: 15px; color: #cbd5e1; word-break: keep-all; }
-
 .site-footer { position: fixed; bottom: 15px; left: 0; width: 100%; text-align: center; font-size: 12px; color: rgba(255, 255, 255, 0.4); z-index: 5; pointer-events: none; }
 
 @media (min-width: 768px) {
