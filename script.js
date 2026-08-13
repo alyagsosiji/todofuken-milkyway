@@ -80,8 +80,6 @@ const prefectures = [
     { regionKo: "오키나와", regionJa: "沖縄", nameKo: "오키나와현", nameJa: "沖縄県", specialties: [{ko:"고야 참푸루",ja:"ゴーヤーチャンプルー"}, {ko:"친스코",ja:"ちんすこう"}, {ko:"우미부도",ja:"海ぶどう"}], spots: [{ko:"츄라우미 수족관",ja:"美ら海水族館"}, {ko:"슈리성",ja:"首里城"}, {ko:"만자모",ja:"万座毛"}] }
 ];
 
-// 🌟 끊어짐 없는 고화질 맵 이미지 데이터 매핑 (위키백과 공식 파일명 활용)
-// 엑박 방지를 위해 %C5%8D(효고현 특수문자) 등을 정확히 세팅
 const wikiFileNames = [
     "01_Hokkaido", "02_Aomori", "03_Iwate", "04_Miyagi", "05_Akita", "06_Yamagata", "07_Fukushima",
     "08_Ibaraki", "09_Tochigi", "10_Gunma", "11_Saitama", "12_Chiba", "13_Tokyo", "14_Kanagawa",
@@ -94,7 +92,6 @@ const wikiFileNames = [
 ];
 
 prefectures.forEach((p, index) => {
-    // 💡 해결의 핵심: ?width=800 을 붙여서 원본 SVG 다운로드를 막고 선명한 PNG 썸네일로 화면에 띄움
     p.mapUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Japan_with_highlight_on_${wikiFileNames[index]}_prefecture.svg?width=800`;
 });
 
@@ -375,6 +372,7 @@ window.app = {
             document.getElementById('multiple-choice-box').classList.remove('hidden');
         } else if (type === 'short') {
             document.getElementById('short-answer-box').classList.remove('hidden');
+            setTimeout(() => document.getElementById('short-answer-input').focus(), 100);
         }
         
         app.nextQuestion();
@@ -409,17 +407,9 @@ window.app = {
         let singleSpotKo = getRandom(currentQuizPrefecture.spots).ko;
         let singleSpotJa = getRandom(currentQuizPrefecture.spots).ja;
 
-        // 🌟 지도 퀴즈 모드일 경우 이미지 표시
         if (currentMode.includes('quiz-map')) {
             document.getElementById('quiz-map-container').classList.remove('hidden');
-            
-            const mapImgElement = document.getElementById('quiz-map-img');
-            // 위키백과 API에서 생성한 고화질 투명 맵 세팅
-            mapImgElement.src = currentQuizPrefecture.mapUrl;
-            // 지도가 검은 화면에서도 선명하게 보이도록 하얀색 캔버스를 깔아줌
-            mapImgElement.style.backgroundColor = "#ffffff";
-            mapImgElement.style.padding = "10px";
-            
+            document.getElementById('quiz-map-img').src = currentQuizPrefecture.mapUrl;
             document.getElementById('quiz-question').innerText = "이 지도의 도도부현은 어디일까요?";
             
             if (currentQuizDifficulty === 'easy') {
@@ -427,8 +417,7 @@ window.app = {
                     ? `📍 소속: ${currentQuizPrefecture.regionKo} 지방\n🍱 특산물: ${allSpKo}\n📸 명소: ${allSpotKo}`
                     : `📍 所属: ${currentQuizPrefecture.regionJa} 地方\n🍱 特産物: ${allSpJa}\n📸 名所: ${allSpotJa}`;
             }
-        } 
-        else {
+        } else {
             document.getElementById('quiz-question').innerText = clueLang === 'ko' 
                 ? "어떤 도도부현일까요? (단서가 필요하면 힌트 보기를 누르세요!)"
                 : "どの都道府県でしょうか？ (ヒントが必要な場合はボタンをクリック！)";
@@ -492,6 +481,7 @@ window.app = {
 
     checkShortAnswer: () => {
         const userInput = document.getElementById('short-answer-input').value.trim();
+        if(!userInput) return; // 빈칸 방지
         const [clueLang, ansLang] = currentQuizLang.split('-');
         const answerName = ansLang === 'ko' ? currentQuizPrefecture.nameKo : currentQuizPrefecture.nameJa;
         app.checkAnswer(userInput === answerName);
@@ -607,3 +597,10 @@ window.app = {
         } catch(e) { alert("해제 실패"); }
     }
 };
+
+// 🌟 주관식 입력창에서 'Enter' 키를 누르면 바로 제출되도록 이벤트 리스너 추가
+document.getElementById('short-answer-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        window.app.checkShortAnswer();
+    }
+});
