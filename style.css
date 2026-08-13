@@ -45,25 +45,33 @@ button.highlight-btn:hover { background: linear-gradient(135deg, #fbbf24, #f59e0
 .divider { border: 0; height: 1px; background: rgba(255,255,255,0.15); margin: 25px 0; }
 .score-display { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fbbf24; }
 
-/* 🌟 지도 퀴즈 컨테이너 설정 */
+/* 🌟 지도 퀴즈 스타일 */
 #quiz-map-container { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: center; }
-#quiz-map-img { max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; }
+#quiz-map-img { max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; background-color: #ffffff; padding: 10px; }
 
+/* 🌟 문제 및 힌트 겹침 수정 */
 .question-box { font-size: 16px; margin: 15px 0; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 12px; line-height: 1.5; word-break: keep-all; }
 .hint-box { background: rgba(74, 222, 128, 0.12); color: #4ade80; border: 1px dashed rgba(74, 222, 128, 0.5); text-align: left; white-space: pre-line; }
+#show-hint-btn { margin-bottom: 15px; } /* 버튼 겹침 방지 여백 추가 */
+
+/* 🌟 주관식 입력창 UI 가로 배치 최적화 */
+#short-answer-box { display: flex; gap: 10px; align-items: center; width: 100%; }
+#short-answer-box input { flex: 7; margin-bottom: 0; }
+#short-answer-box button { flex: 3; margin-bottom: 0; min-height: 48px; }
+
+/* 🌟 화면 덜컹거림 방지 */
+#quiz-feedback { margin-top: 15px; font-size: 15px; font-weight: bold; min-height: 24px; }
 
 .grid-choices { display: flex; flex-direction: column; gap: 10px; }
 .choice-btn { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 0; min-height: 55px; }
 .choice-btn:hover { background: #334155; }
 
-/* 🌟 단어장 카드 크기 상향 및 정보 배치 */
-.flashcard { width: 100%; height: 260px; /* 높이 증가 */ perspective: 1000px; margin-bottom: 20px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* 단어장 3D 뒤집기 */
+.flashcard { width: 100%; height: 260px; perspective: 1000px; margin-bottom: 20px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .card-inner { width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; position: relative; }
 .flashcard.flipped .card-inner { transform: rotateY(180deg); }
 .card-front, .card-back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-radius: 16px; background: linear-gradient(135deg, #4f46e5, #3730a3); padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); word-break: keep-all; overflow-y: auto; }
 .card-back { background: linear-gradient(135deg, #334155, #1e293b); transform: rotateY(180deg); }
-
-/* 단어장 텍스트 디자인 */
 .fc-title { font-size: 28px; font-weight: bold; margin-bottom: 15px; }
 .fc-details { font-size: 13px; font-weight: normal; margin-top: 5px; text-align: left; line-height: 1.5; color: #cbd5e1; width: 100%; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
 
